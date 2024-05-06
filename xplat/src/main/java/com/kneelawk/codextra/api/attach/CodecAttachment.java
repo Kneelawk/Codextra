@@ -52,6 +52,7 @@ public class CodecAttachment<A> {
      *
      * @param name the name of this attachment. This name is only used in printing error messages.
      * @param <A>  the type this attachment attaches.
+     * @return a new codec attachment key.
      */
     public static <A> CodecAttachment<A> of(String name) {
         return new CodecAttachment<>(name);
