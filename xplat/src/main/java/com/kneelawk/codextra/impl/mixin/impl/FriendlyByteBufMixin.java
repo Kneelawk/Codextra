@@ -33,23 +33,22 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.mojang.serialization.DynamicOps;
+import io.netty.buffer.ByteBuf;
 
-import net.minecraft.resources.RegistryOps;
+import net.minecraft.network.FriendlyByteBuf;
 
 import com.kneelawk.codextra.impl.CodextraImpl;
 import com.kneelawk.codextra.impl.attach.AttachmentManager;
 import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
 
-@Mixin(RegistryOps.class)
-public class RegistryOpsMixin implements CodextraAttachmentManagerHolder {
+@Mixin(FriendlyByteBuf.class)
+public class FriendlyByteBufMixin implements CodextraAttachmentManagerHolder {
     @Unique
     private AttachmentManager codextra_attachmentManager;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void codextra_onCreate(DynamicOps<?> delegate, RegistryOps.RegistryInfoLookup lookupProvider,
-                                   CallbackInfo ci) {
-        AttachmentManager manager = CodextraImpl.getAttachmentManager(delegate);
+    private void codextra_onCreate(ByteBuf source, CallbackInfo ci) {
+        AttachmentManager manager = CodextraImpl.getAttachmentManager(source);
         codextra_attachmentManager = Objects.requireNonNullElseGet(manager, AttachmentManager::new);
     }
 

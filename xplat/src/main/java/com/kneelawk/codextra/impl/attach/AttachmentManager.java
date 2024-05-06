@@ -44,11 +44,14 @@ public class AttachmentManager {
         cur.prev = (Holder<A>) holders.put(key, cur);
     }
 
-    public void pop(CodecAttachment<?> key) {
-        Holder<?> popped = holders.remove(key);
+    @SuppressWarnings("unchecked")
+    public <A> @Nullable A pop(CodecAttachment<A> key) {
+        Holder<A> popped = (Holder<A>) holders.remove(key);
+        if (popped == null) return null;
         if (popped.prev != null) {
             holders.put(key, popped.prev);
         }
+        return popped.value;
     }
 
     @SuppressWarnings("unchecked")

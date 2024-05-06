@@ -23,43 +23,28 @@
  *
  */
 
-package com.kneelawk.codextra.impl.mixin.impl;
-
-import java.util.Objects;
-
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+package com.kneelawk.codextra.impl.attach;
 
 import com.mojang.serialization.DynamicOps;
 
-import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.DelegatingOps;
 
-import com.kneelawk.codextra.impl.CodextraImpl;
-import com.kneelawk.codextra.impl.attach.AttachmentManager;
 import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
 
-@Mixin(RegistryOps.class)
-public class RegistryOpsMixin implements CodextraAttachmentManagerHolder {
-    @Unique
-    private AttachmentManager codextra_attachmentManager;
+public class AttachmentOps<T> extends DelegatingOps<T> implements CodextraAttachmentManagerHolder {
+    private AttachmentManager attachmentManager = new AttachmentManager();
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void codextra_onCreate(DynamicOps<?> delegate, RegistryOps.RegistryInfoLookup lookupProvider,
-                                   CallbackInfo ci) {
-        AttachmentManager manager = CodextraImpl.getAttachmentManager(delegate);
-        codextra_attachmentManager = Objects.requireNonNullElseGet(manager, AttachmentManager::new);
+    public AttachmentOps(DynamicOps<T> delegate) {
+        super(delegate);
     }
 
     @Override
     public AttachmentManager codextra_getAttachmentManager() {
-        return codextra_attachmentManager;
+        return attachmentManager;
     }
 
     @Override
     public void codextra_setAttachmentManager(AttachmentManager manager) {
-        this.codextra_attachmentManager = manager;
+        attachmentManager = manager;
     }
 }
