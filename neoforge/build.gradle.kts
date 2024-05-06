@@ -30,8 +30,9 @@ plugins {
 }
 
 submodule {
-    applyXplatConnection(":xplat")
     applyNeoforgeDependency()
+    applyXplatConnection(":xplat")
+    createDevExport()
 }
 
 java {

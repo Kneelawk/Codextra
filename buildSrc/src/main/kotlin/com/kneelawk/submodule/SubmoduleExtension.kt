@@ -28,7 +28,6 @@ package com.kneelawk.submodule
 import com.kneelawk.getProperty
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import org.gradle.api.Project
-import org.gradle.api.plugins.BasePluginExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
@@ -42,11 +41,6 @@ import org.gradle.language.jvm.tasks.ProcessResources
 abstract class SubmoduleExtension(private val project: Project) {
     lateinit var xplatName: String
     val transitiveProjectDependencies = mutableListOf<String>()
-
-    fun setLibsDirectory() {
-        val baseEx = project.extensions.getByType(BasePluginExtension::class)
-        baseEx.libsDirectory.set(project.rootProject.layout.buildDirectory.dir("libs"))
-    }
 
     fun setRefmaps(basename: String) {
         val refmapName = "${basename}.refmap.json"
