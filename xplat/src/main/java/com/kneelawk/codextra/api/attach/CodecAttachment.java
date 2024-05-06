@@ -25,12 +25,28 @@
 
 package com.kneelawk.codextra.api.attach;
 
+/**
+ * A key for a kind of thing that can be attached to a {@link com.mojang.serialization.DynamicOps}
+ * or {@link net.minecraft.network.FriendlyByteBuf}.
+ *
+ * @param <A> the type of thing this attaches.
+ */
 @SuppressWarnings("unused")
 public class CodecAttachment<A> {
     private final String errorMsg;
 
+    /**
+     * Creates a new codec attachment key.
+     *
+     * @param errorMsg the message that will be printed if this attachment can't find a value.
+     */
     public CodecAttachment(String errorMsg) {this.errorMsg = errorMsg;}
 
+    /**
+     * Gets this attachment's error message.
+     *
+     * @return this attachment's error message.
+     */
     public String getErrorMsg() {
         return errorMsg;
     }
