@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 Cyan Kneelawk.
+ * Copyright (c) 2023 Kneelawk.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,22 +27,19 @@ package com.kneelawk.submodule
 
 import com.kneelawk.getProperty
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
-import net.neoforged.gradle.dsl.common.runs.run.Run
 import org.gradle.api.JavaVersion
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.BasePluginExtension
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.testing.Test
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.jvm.tasks.Jar
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.jvm.tasks.ProcessResources
-import org.gradle.plugins.ide.idea.model.IdeaModel
 
 class SubmodulePlugin : Plugin<Project> {
     private val metadataFiles = listOf(
@@ -54,84 +51,56 @@ class SubmodulePlugin : Plugin<Project> {
     )
 
     override fun apply(project: Project) {
-        val platform = project.getProperty<String>("submodule.platform")
-
-        project.repositories {
-            mavenCentral()
-            maven("https://maven.fabricmc.net/") { name = "Fabric" }
-            maven("https://maven.architectury.dev/") { name = "Architectury" }
-            maven("https://maven.quiltmc.org/repository/release") { name = "Quilt" }
-            maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
-            maven("https://kneelawk.com/maven") { name = "Kneelawk" }
-            maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
-        }
-
-        project.plugins.apply("idea")
-
-        val ideaEx = project.extensions.getByType(IdeaModel::class)
-        ideaEx.module {
-            isDownloadSources = true
-            isDownloadJavadoc = true
-        }
-
-        when (platform) {
-            "fabric", "xplat" -> {
-                project.plugins.apply("fabric-loom")
-
-                val loomEx = project.extensions.getByType(LoomGradleExtensionAPI::class)
-
-                project.dependencies {
-                    val minecraftVersion = project.getProperty<String>("minecraft_version")
-                    add("minecraft", "com.mojang:minecraft:$minecraftVersion")
-                    val parchmentVersion = project.getProperty<String>("parchment_version")
-                    add("mappings", loomEx.layered {
-                        officialMojangMappings()
-                        parchment("org.parchmentmc.data:parchment-$minecraftVersion:$parchmentVersion@zip")
-                    })
-                }
-
-                project.afterEvaluate {
-                    tasks.named("genSources")
-                        .configure { setDependsOn(listOf(tasks.named("genSourcesWithVineflower"))) }
-                }
-            }
-            "neoforge" -> {
-                project.plugins.apply("net.neoforged.gradle.userdev")
-                val sourcesSets = project.extensions.getByType(SourceSetContainer::class)
-
-                project.dependencies {
-                    val neoforgeVersion = project.getProperty<String>("neoforge_version")
-                    add("implementation", "net.neoforged:neoforge:$neoforgeVersion")
-                }
-
-                val runsEx = project.extensions.getByName<NamedDomainObjectContainer<Run>>("runs")
-
-                runsEx.configureEach {
-                    modSource(sourcesSets.named("main").get())
-                }
-            }
-        }
+        project.plugins.apply("dev.architectury.loom")
 
         val baseEx = project.extensions.getByType(BasePluginExtension::class)
         val javaEx = project.extensions.getByType(JavaPluginExtension::class)
+        val loomEx = project.extensions.getByType(LoomGradleExtensionAPI::class)
 
-        project.extensions.create("submodule", SubmoduleExtension::class, project, platform)
-
-        val javaVersion = project.getProperty<String>("java_version")
+        project.extensions.create("submodule", SubmoduleExtension::class, project)
 
         val mavenGroup = project.getProperty<String>("maven_group")
         project.group = mavenGroup
         val archivesBaseName = project.getProperty<String>("archives_base_name")
         baseEx.archivesName.set("${archivesBaseName}-${project.name}")
 
+        val javaVersion = if (System.getenv("JAVA_VERSION") != null) {
+            System.getenv("JAVA_VERSION")
+        } else {
+            project.getProperty<String>("java_version")
+        }
+
         javaEx.apply {
-            withSourcesJar()
-            withJavadocJar()
+            sourceCompatibility = JavaVersion.toVersion(javaVersion)
+            targetCompatibility = JavaVersion.toVersion(javaVersion)
 
             toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
 
-            sourceCompatibility = JavaVersion.toVersion(javaVersion)
-            targetCompatibility = JavaVersion.toVersion(javaVersion)
+            withSourcesJar()
+        }
+
+        project.repositories.apply {
+            mavenCentral()
+            maven("https://maven.quiltmc.org/repository/release") { name = "Quilt" }
+            maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
+            maven("https://maven.firstdark.dev/snapshots") { name = "FirstDark" }
+            maven("https://kneelawk.com/maven") { name = "Kneelawk" }
+            maven("https://maven.alexiil.uk/") { name = "AlexIIL" }
+            maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
+
+            mavenLocal()
+        }
+
+        project.dependencies.apply {
+            val minecraftVersion = project.getProperty<String>("minecraft_version")
+            add("minecraft", "com.mojang:minecraft:$minecraftVersion")
+            val parchmentVersion = project.getProperty<String>("parchment_version")
+            add("mappings", loomEx.layered {
+                officialMojangMappings()
+                parchment("org.parchmentmc.data:parchment-$minecraftVersion:$parchmentVersion@zip")
+            })
+
+            add("testImplementation", "junit:junit:4.13.2")
         }
 
         project.tasks.apply {
@@ -146,7 +115,7 @@ class SubmodulePlugin : Plugin<Project> {
                     expand(properties)
                 }
             }
-            
+
             withType<JavaCompile>().configureEach {
                 options.encoding = "UTF-8"
                 options.release.set(javaVersion.toInt())
@@ -176,6 +145,14 @@ class SubmodulePlugin : Plugin<Project> {
 
                 options.optionFiles(project.rootProject.file("javadoc-options.txt"))
             }
+
+            named("test", Test::class.java).configure {
+                useJUnit()
+            }
+        }
+
+        project.afterEvaluate {
+            tasks.findByName("genSources")?.apply { setDependsOn(listOf("genSourcesWithVineflower")) }
         }
     }
 }

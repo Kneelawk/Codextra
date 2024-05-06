@@ -34,6 +34,10 @@ submodule {
     applyFabricLoaderDependency()
 }
 
+java {
+    withJavadocJar()
+}
+
 kpublish {
     createPublication("intermediary", publicationName = "mavenIntermediary")
     createPublication(

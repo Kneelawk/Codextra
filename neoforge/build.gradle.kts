@@ -29,17 +29,13 @@ plugins {
     id("com.kneelawk.kpublish")
 }
 
-runs {
-    create("client") {
-        programArguments("--width", "1280", "--height", "720")
-    }
-    create("server") {
-        programArgument("--nogui")
-    }
-}
-
 submodule {
     applyXplatConnection(":xplat")
+    applyNeoforgeDependency()
+}
+
+java {
+    withJavadocJar()
 }
 
 kpublish {

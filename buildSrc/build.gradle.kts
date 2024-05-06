@@ -40,11 +40,8 @@ repositories {
 }
 
 dependencies {
-    val loom_version: String by project
-    implementation("net.fabricmc:fabric-loom:$loom_version")
-
-    val userdev_version: String by project
-    implementation("net.neoforged.gradle:userdev:$userdev_version")
+    val architectury_loom_version: String by project
+    implementation("dev.architectury.loom:dev.architectury.loom.gradle.plugin:$architectury_loom_version")
 }
 
 gradlePlugin {

@@ -29,22 +29,14 @@ plugins {
     id("com.kneelawk.kpublish")
 }
 
-loom {
-    runs {
-        named("client").configure { 
-            ideConfigGenerated(true)
-            programArgs("--width", "1280", "--height", "720")
-        }
-        named("server").configure { 
-            ideConfigGenerated(true)
-        }
-    }
-}
-
 submodule {
     applyXplatConnection(":xplat")
     applyFabricLoaderDependency()
     applyFabricApiDependency()
+}
+
+java {
+    withJavadocJar()
 }
 
 kpublish {

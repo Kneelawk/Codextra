@@ -9,10 +9,10 @@ pluginManagement {
         maven("https://kneelawk.com/maven") { name = "Kneelawk" }
     }
     plugins {
-        val loom_version: String by settings
-        id("fabric-loom") version loom_version
-        val userdev_version: String by settings
-        id("net.neoforged.gradle.userdev") version userdev_version
+        val architectury_loom_version: String by settings
+        id("dev.architectury.loom") version architectury_loom_version
+        val remapcheck_version: String by settings
+        id("com.kneelawk.remapcheck") version remapcheck_version
     }
 }
 
