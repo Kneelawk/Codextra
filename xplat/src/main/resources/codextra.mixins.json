@@ -8,5 +8,5 @@
     "defaultRequire": 1
   },
   "client": [ ],
-  "mixins": [ ]
+  "mixins": [ "RegistryOpsMixin" ]
 }
