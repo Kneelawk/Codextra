@@ -8,6 +8,20 @@ pluginManagement {
         maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
         maven("https://kneelawk.com/maven") { name = "Kneelawk" }
     }
+    plugins {
+        val loom_version: String by settings
+        id("fabric-loom") version loom_version
+        val userdev_version: String by settings
+        id("net.neoforged.gradle.userdev") version userdev_version
+    }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
 rootProject.name = "codextra"
+
+include(":xplat")
+include(":fabric")
+include(":neoforge")

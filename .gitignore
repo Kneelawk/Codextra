@@ -10,6 +10,11 @@ run/
 !**/src/test/**/run/
 /.architectury-transformer/
 
+### NeoGradle ###
+runs/
+!**/src/main/**/runs/
+!**/src/test/**/runs/
+
 ### IntelliJ IDEA ###
 /.idea/
 *.iws

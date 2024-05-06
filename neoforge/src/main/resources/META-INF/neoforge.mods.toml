@@ -1,0 +1,21 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mixins]]
+config = "codextra.mixins.json"
+
+[[mods]]
+modId = "codextra"
+version = "${version}"
+displayName = "Codextra"
+authors = "Kneelawk"
+description = "Minecraft Codec extras and utilities, including Ops-Attachments."
+logoFile = "assets/codextra/icon-128.png"
+
+[[dependencies.codextra]]
+modId = "neoforge"
+type = "REQUIRED"
+versionRange = "[20.6.40-beta,)"
+ordering = "NONE"
+side = "BOTH"
