@@ -23,28 +23,7 @@
  *
  */
 
-package com.kneelawk.codextra.impl.attach;
+@ApiStatus.Internal
+package com.kneelawk.codextra.impl.mixin.impl;
 
-import com.mojang.serialization.DynamicOps;
-
-import net.minecraft.resources.DelegatingOps;
-
-import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
-
-public class AttachmentOps<T> extends DelegatingOps<T> implements CodextraAttachmentManagerHolder {
-    private AttachmentManagerImpl attachmentManager = new AttachmentManagerImpl();
-
-    public AttachmentOps(DynamicOps<T> delegate) {
-        super(delegate);
-    }
-
-    @Override
-    public AttachmentManagerImpl codextra_getAttachmentManager() {
-        return attachmentManager;
-    }
-
-    @Override
-    public void codextra_setAttachmentManager(AttachmentManagerImpl manager) {
-        attachmentManager = manager;
-    }
-}
+import org.jetbrains.annotations.ApiStatus;

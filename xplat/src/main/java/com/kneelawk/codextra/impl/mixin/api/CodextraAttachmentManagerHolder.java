@@ -25,11 +25,11 @@
 
 package com.kneelawk.codextra.impl.mixin.api;
 
-import com.kneelawk.codextra.impl.attach.AttachmentManager;
+import com.kneelawk.codextra.impl.attach.AttachmentManagerImpl;
 
 public interface CodextraAttachmentManagerHolder {
-    AttachmentManager codextra_getAttachmentManager();
+    AttachmentManagerImpl codextra_getAttachmentManager();
 
     // set the attachment manager after creation, just in case we can't pass it in through the constructor somehow
-    void codextra_setAttachmentManager(AttachmentManager manager);
+    void codextra_setAttachmentManager(AttachmentManagerImpl manager);
 }

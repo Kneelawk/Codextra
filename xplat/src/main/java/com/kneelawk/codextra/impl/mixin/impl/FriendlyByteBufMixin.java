@@ -38,27 +38,27 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.kneelawk.codextra.impl.CodextraImpl;
-import com.kneelawk.codextra.impl.attach.AttachmentManager;
+import com.kneelawk.codextra.impl.attach.AttachmentManagerImpl;
 import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
 
 @Mixin(FriendlyByteBuf.class)
 public class FriendlyByteBufMixin implements CodextraAttachmentManagerHolder {
     @Unique
-    private AttachmentManager codextra_attachmentManager;
+    private AttachmentManagerImpl codextra_attachmentManager;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void codextra_onCreate(ByteBuf source, CallbackInfo ci) {
-        AttachmentManager manager = CodextraImpl.getAttachmentManager(source);
-        codextra_attachmentManager = Objects.requireNonNullElseGet(manager, AttachmentManager::new);
+        AttachmentManagerImpl manager = CodextraImpl.getAttachmentManager(source);
+        codextra_attachmentManager = Objects.requireNonNullElseGet(manager, AttachmentManagerImpl::new);
     }
 
     @Override
-    public AttachmentManager codextra_getAttachmentManager() {
+    public AttachmentManagerImpl codextra_getAttachmentManager() {
         return codextra_attachmentManager;
     }
 
     @Override
-    public void codextra_setAttachmentManager(AttachmentManager manager) {
+    public void codextra_setAttachmentManager(AttachmentManagerImpl manager) {
         this.codextra_attachmentManager = manager;
     }
 }

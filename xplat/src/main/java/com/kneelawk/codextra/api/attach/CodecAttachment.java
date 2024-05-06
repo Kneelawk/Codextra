@@ -34,7 +34,6 @@ import com.mojang.serialization.DynamicOps;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.kneelawk.codextra.impl.CodextraImpl;
-import com.kneelawk.codextra.impl.attach.AttachmentManager;
 
 /**
  * A key for a kind of thing that can be attached to a {@link DynamicOps} or {@link FriendlyByteBuf}.
@@ -135,7 +134,7 @@ public class CodecAttachment<A> {
      * @return the current value or {@code null} if there is none.
      */
     public @Nullable A get(DynamicOps<?> ops) {
-        AttachmentManager manager = CodextraImpl.getAttachmentManager(ops);
+        AttachmentManager manager = AttachmentManager.getAttachmentManager(ops);
         if (manager == null) return null;
         return manager.get(this);
     }
@@ -147,7 +146,7 @@ public class CodecAttachment<A> {
      * @return the current value or {@code null} if there is none.
      */
     public @Nullable A get(ByteBuf buf) {
-        AttachmentManager manager = CodextraImpl.getAttachmentManager(buf);
+        AttachmentManager manager = AttachmentManager.getAttachmentManager(buf);
         if (manager == null) return null;
         return manager.get(this);
     }

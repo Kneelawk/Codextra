@@ -31,19 +31,22 @@ import org.jetbrains.annotations.Nullable;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
+import com.kneelawk.codextra.api.attach.AttachmentManager;
 import com.kneelawk.codextra.api.attach.CodecAttachment;
 
-public class AttachmentManager {
+public class AttachmentManagerImpl implements AttachmentManager {
     private final Map<CodecAttachment<?>, Holder<?>> holders = new Object2ObjectOpenHashMap<>();
 
-    public AttachmentManager() {}
+    public AttachmentManagerImpl() {}
 
+    @Override
     @SuppressWarnings("unchecked")
     public <A> void push(CodecAttachment<A> key, A value) {
         Holder<A> cur = new Holder<>(value);
         cur.prev = (Holder<A>) holders.put(key, cur);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <A> @Nullable A pop(CodecAttachment<A> key) {
         Holder<A> popped = (Holder<A>) holders.remove(key);
@@ -54,6 +57,7 @@ public class AttachmentManager {
         return popped.value;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <A> @Nullable A get(CodecAttachment<A> key) {
         Holder<A> holder = (Holder<A>) holders.get(key);

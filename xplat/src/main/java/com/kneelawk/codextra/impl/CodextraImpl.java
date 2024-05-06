@@ -35,7 +35,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.DelegatingOps;
 
 import com.kneelawk.codextra.api.attach.CodecAttachment;
-import com.kneelawk.codextra.impl.attach.AttachmentManager;
+import com.kneelawk.codextra.impl.attach.AttachmentManagerImpl;
 import com.kneelawk.codextra.impl.attach.AttachmentOps;
 import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
 import com.kneelawk.codextra.impl.mixin.impl.DelegatingOpsAccessor;
@@ -48,7 +48,7 @@ public class CodextraImpl {
             holder = (CodextraAttachmentManagerHolder) ops;
         }
 
-        AttachmentManager manager = holder.codextra_getAttachmentManager();
+        AttachmentManagerImpl manager = holder.codextra_getAttachmentManager();
         manager.push(key, value);
 
         return ops;
@@ -56,7 +56,7 @@ public class CodextraImpl {
 
     public static <A> void push(FriendlyByteBuf buf, CodecAttachment<A> key, A value) {
         CodextraAttachmentManagerHolder holder = (CodextraAttachmentManagerHolder) buf;
-        AttachmentManager manager = holder.codextra_getAttachmentManager();
+        AttachmentManagerImpl manager = holder.codextra_getAttachmentManager();
         manager.push(key, value);
     }
 
@@ -67,14 +67,14 @@ public class CodextraImpl {
             holder = (CodextraAttachmentManagerHolder) buf;
         }
 
-        AttachmentManager manager = holder.codextra_getAttachmentManager();
+        AttachmentManagerImpl manager = holder.codextra_getAttachmentManager();
         manager.push(key, value);
 
         return buf;
     }
 
     public static <A> @Nullable A pop(DynamicOps<?> ops, CodecAttachment<A> key) {
-        AttachmentManager manager = getAttachmentManager(ops);
+        AttachmentManagerImpl manager = getAttachmentManager(ops);
         if (manager != null) {
             return manager.pop(key);
         }
@@ -82,20 +82,20 @@ public class CodextraImpl {
     }
 
     public static <A> @Nullable A pop(ByteBuf buf, CodecAttachment<A> key) {
-        AttachmentManager manager = getAttachmentManager(buf);
+        AttachmentManagerImpl manager = getAttachmentManager(buf);
         if (manager != null) {
             return manager.pop(key);
         }
         return null;
     }
 
-    public static @Nullable AttachmentManager getAttachmentManager(DynamicOps<?> ops) {
+    public static @Nullable AttachmentManagerImpl getAttachmentManager(DynamicOps<?> ops) {
         CodextraAttachmentManagerHolder holder = getHolder(ops);
         if (holder == null) return null;
         return holder.codextra_getAttachmentManager();
     }
 
-    public static @Nullable AttachmentManager getAttachmentManager(ByteBuf buf) {
+    public static @Nullable AttachmentManagerImpl getAttachmentManager(ByteBuf buf) {
         CodextraAttachmentManagerHolder holder = getHolder(buf);
         if (holder == null) return null;
         return holder.codextra_getAttachmentManager();
