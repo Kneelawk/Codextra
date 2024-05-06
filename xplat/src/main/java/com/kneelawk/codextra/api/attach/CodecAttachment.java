@@ -25,26 +25,47 @@
 
 package com.kneelawk.codextra.api.attach;
 
+import java.util.function.Function;
+
 import org.jetbrains.annotations.Nullable;
 
 import io.netty.buffer.ByteBuf;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 
+import com.kneelawk.codextra.api.attach.codec.AttachingCodec;
+import com.kneelawk.codextra.api.attach.codec.AttachingMapCodec;
+import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
 import com.kneelawk.codextra.impl.CodextraImpl;
 
 /**
  * A key for a kind of thing that can be attached to a {@link DynamicOps} or {@link FriendlyByteBuf}.
  * <p>
- * Attachments work like stacks, allowing you to push and
+ * Attachments work like stacks, allowing you to push and pop them. Getting the current attachment always retrieves the
+ * top-most value.
  *
  * @param <A> the type of thing this attaches.
  */
 @SuppressWarnings("unused")
 public class CodecAttachment<A> {
     private final String name;
+
+    /**
+     * Creates a new codec attachment key.
+     *
+     * @param name the name of this attachment. This name is only used for printing error messages.
+     * @param <A>  the type this attachment attaches.
+     * @return a new codec attachment key.
+     */
+    public static <A> CodecAttachment<A> of(ResourceLocation name) {
+        return of(name.toString());
+    }
 
     /**
      * Creates a new codec attachment key.
@@ -66,6 +87,11 @@ public class CodecAttachment<A> {
      */
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+        return "CodecAttachment(" + name + ")";
     }
 
     /**
@@ -149,5 +175,53 @@ public class CodecAttachment<A> {
         AttachmentManager manager = AttachmentManager.getAttachmentManager(buf);
         if (manager == null) return null;
         return manager.get(this);
+    }
+
+    /**
+     * Creates a {@link Codec} that attaches the given value to the codec context when decoding/encoding the
+     * wrapped codec.
+     *
+     * @param toAttach the value to attach.
+     * @param toWrap   the codec which will receive the attached value.
+     * @param <R>      the type the codec handles.
+     * @return a codec that attaches the given value when decoding/encoding the given codec.
+     */
+    public <R> Codec<R> attachingCodec(A toAttach, Codec<R> toWrap) {
+        return new AttachingCodec<>(this, toAttach, toWrap);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that attaches the given value to the codec context when decoding/encoding the
+     * wrapped codec.
+     *
+     * @param toAttach the value to attach.
+     * @param toWrap   the codec which will receive the attached value.
+     * @param <R>      the type the codec handles.
+     * @return a map codec that attaches the given value when decoding/encoding the given codec.
+     */
+    public <R> MapCodec<R> attachingMapCodec(A toAttach, MapCodec<R> toWrap) {
+        return new AttachingMapCodec<>(this, toAttach, toWrap);
+    }
+
+    /**
+     * Creates a {@link RecordCodecBuilder} that acts as a field, but that only returns the retrieved value.
+     *
+     * @param retriever the function for retrieving the desired value form the attachment value.
+     * @param <O>       the object the field will be a part of.
+     * @param <R>       the field type.
+     * @return a {@link RecordCodecBuilder} field that only returns the retrieved value.
+     */
+    public <O, R> RecordCodecBuilder<O, R> retrieve(Function<A, R> retriever) {
+        return new RetrievalMapCodec<>(this, retriever).forGetter(o -> null);
+    }
+
+    /**
+     * Creates a {@link RecordCodecBuilder} that acts as a field, but that only returns the attached value.
+     *
+     * @param <O> the object type the field will be a part of.
+     * @return a {@link RecordCodecBuilder} field that only returns the attached value.
+     */
+    public <O> RecordCodecBuilder<O, A> retrieve() {
+        return retrieve(Function.identity());
     }
 }
