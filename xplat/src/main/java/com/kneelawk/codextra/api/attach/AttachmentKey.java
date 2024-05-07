@@ -52,6 +52,7 @@ import com.kneelawk.codextra.api.attach.codec.AttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachingMapCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchMapCodec;
+import com.kneelawk.codextra.api.attach.codec.KeyAttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithMapCodec;
@@ -291,6 +292,34 @@ public class AttachmentKey<A> {
      */
     public <R> MapCodec<R> attachingMapCodec(A toAttach, MapCodec<R> toWrap) {
         return new AttachingMapCodec<>(this, toAttach, toWrap);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that decodes one value and attaches it to the context when decoding the result value.
+     *
+     * @param keyCodec         the codec that decodes the attachment.
+     * @param wrappedCodec     the codec that is invoked with the attachment attached.
+     * @param attachmentGetter a function for getting the attachment when given the result type.
+     * @param <R>              the result type.
+     * @return a map codec that decodes a value and attaches it while decoding the result value.
+     */
+    public <R> MapCodec<R> keyAttachingCodecResult(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
+                                                   Function<R, DataResult<A>> attachmentGetter) {
+        return new KeyAttachingCodec<>(this, keyCodec, wrappedCodec, attachmentGetter);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that decodes one value and attaches it to the context when decoding the result value.
+     *
+     * @param keyCodec         the codec that decodes the attachment.
+     * @param wrappedCodec     the codec that is invoked with the attachment attached.
+     * @param attachmentGetter a function for getting the attachment when given the result type.
+     * @param <R>              the result type.
+     * @return a map codec that decodes a value and attaches it while decoding the result value.
+     */
+    public <R> MapCodec<R> keyAttachingCodec(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
+                                             Function<R, A> attachmentGetter) {
+        return keyAttachingCodecResult(keyCodec, wrappedCodec, attachmentGetter.andThen(DataResult::success));
     }
 
     /**
