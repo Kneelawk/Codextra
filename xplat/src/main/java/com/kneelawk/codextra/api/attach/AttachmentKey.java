@@ -27,6 +27,7 @@ package com.kneelawk.codextra.api.attach;
 
 import java.util.function.Function;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import io.netty.buffer.ByteBuf;
@@ -43,6 +44,7 @@ import com.kneelawk.codextra.api.attach.codec.AttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachingMapCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
 import com.kneelawk.codextra.impl.CodextraImpl;
+import com.kneelawk.codextra.impl.FieldNameHelper;
 
 /**
  * A typed key allowing things to be attached to a {@link DynamicOps} or {@link FriendlyByteBuf}.
@@ -54,7 +56,31 @@ import com.kneelawk.codextra.impl.CodextraImpl;
  */
 @SuppressWarnings("unused")
 public class AttachmentKey<A> {
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+
     private final String name;
+
+    /**
+     * Creates a new codec attachment key with the name of the field the attachment key is being assigned to.
+     * <p>
+     * This works by using a stack-walker to find the caller class, then iterating through the static fields in
+     * initialization order to find the first one of the correct type that isn't initialized yet. This only works if
+     * this instance is to be stored in a static field in the caller class.
+     * <p>
+     * <b>Note:</b> this won't work with Kotlin fields unless the field is annotated with {@code @JvmStatic}.
+     * <p>
+     * This is intended so that users can quickly and easily know where the attachment they're missing is located.
+     *
+     * @param <A> the type this attachment attaches.
+     * @return a new attachment key named after the field it is being stored in.
+     */
+    @ApiStatus.Experimental
+    public static <A> AttachmentKey<A> ofStaticFieldName() {
+        Class<?> caller = STACK_WALKER.getCallerClass();
+        String name = caller.getName() + "." +
+            FieldNameHelper.getCurrentlyInitializingFieldName(caller, AttachmentKey.class);
+        return new AttachmentKey<>(name);
+    }
 
     /**
      * Creates a new codec attachment key.
@@ -91,7 +117,7 @@ public class AttachmentKey<A> {
 
     @Override
     public String toString() {
-        return "CodecAttachment(" + name + ")";
+        return "AttachmentKey[" + name + "]";
     }
 
     /**
