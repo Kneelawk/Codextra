@@ -102,7 +102,7 @@ class SubmodulePlugin : Plugin<Project> {
 
             add("testImplementation", platform("org.junit:junit-bom:5.10.2"))
             add("testImplementation", "org.junit.jupiter:junit-jupiter")
-            add("testRuntime", "org.junit.platform:junit-platform-launcher")
+            add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
         }
 
         project.tasks.apply {
