@@ -36,7 +36,7 @@ public interface ByteBufCodecsMixin {
     }
 
     @WrapOperation(method = "method_56370", at = @At(value = "INVOKE",
-        target = "Lcom/mojang/serialization/Codec;parse(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;"))
+        target = "Lcom/mojang/serialization/Codec;parse(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;", remap = false))
     private static DataResult<?> codextra_wrapFromCodecParse(Codec<?> instance, DynamicOps<Object> dynamicOps, Object o,
                                                              Operation<DataResult<?>> original) {
         AttachmentManagerImpl manager = ManagerGrabberStreamCodec.CURRENT_MANAGER.get();
@@ -51,7 +51,7 @@ public interface ByteBufCodecsMixin {
     }
     
     @WrapOperation(method = "method_56369", at = @At(value = "INVOKE",
-        target = "Lcom/mojang/serialization/Codec;encodeStart(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;"))
+        target = "Lcom/mojang/serialization/Codec;encodeStart(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;", remap = false))
     private static DataResult<?> codextra_wrapFromCodecEncodeStart(Codec<?> instance, DynamicOps<Object> dynamicOps, Object o,
                                                                 Operation<DataResult<?>> original) {
         AttachmentManagerImpl manager = ManagerGrabberStreamCodec.CURRENT_MANAGER.get();

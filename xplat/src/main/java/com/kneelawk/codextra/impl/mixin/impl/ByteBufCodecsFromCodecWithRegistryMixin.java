@@ -26,7 +26,7 @@ import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
 public class ByteBufCodecsFromCodecWithRegistryMixin {
     @WrapOperation(method = "decode(Lnet/minecraft/network/RegistryFriendlyByteBuf;)Ljava/lang/Object;", at = @At(
         value = "INVOKE",
-        target = "Lcom/mojang/serialization/Codec;parse(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;"))
+        target = "Lcom/mojang/serialization/Codec;parse(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;", remap = false))
     private DataResult<?> codextra_wrapParse(Codec<?> instance, DynamicOps<Object> dynamicOps, Object o,
                                              Operation<DataResult<?>> original, RegistryFriendlyByteBuf buf) {
         // this cast should *always* succeed, as RegistryFriendlyByteBuf extends FriendlyByteBuf which is mixin'd to implement CodextraAttachmentManagerHolder
@@ -40,7 +40,7 @@ public class ByteBufCodecsFromCodecWithRegistryMixin {
 
     @WrapOperation(method = "encode(Lnet/minecraft/network/RegistryFriendlyByteBuf;Ljava/lang/Object;)V", at = @At(
         value = "INVOKE",
-        target = "Lcom/mojang/serialization/Codec;encodeStart(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;"))
+        target = "Lcom/mojang/serialization/Codec;encodeStart(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;", remap = false))
     private DataResult<?> codextra_wrapEncodeStart(Codec<?> instance, DynamicOps<Object> dynamicOps, Object o,
                                                    Operation<DataResult<?>> original, RegistryFriendlyByteBuf buf,
                                                    Object value) {
