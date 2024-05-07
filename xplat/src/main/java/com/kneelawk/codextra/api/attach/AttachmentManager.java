@@ -1,5 +1,7 @@
 package com.kneelawk.codextra.api.attach;
 
+import java.util.Set;
+
 import org.jetbrains.annotations.Nullable;
 
 import io.netty.buffer.ByteBuf;
@@ -64,4 +66,14 @@ public interface AttachmentManager {
      * @return the current value of the attachment or {@code null} if the attachment is not present.
      */
     <A> @Nullable A get(AttachmentKey<A> key);
+
+    /**
+     * Gets all attachments currently attached.
+     * <p>
+     * This set is not updated when the attachment manger's attachments change and changes to the returned set will not
+     * be reflected in this attachment manager's attachments.
+     *
+     * @return a set of all attachments currently attached.
+     */
+    Set<AttachmentKey<?>> getAttachments();
 }

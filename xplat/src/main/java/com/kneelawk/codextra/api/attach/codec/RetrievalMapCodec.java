@@ -9,7 +9,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
-import com.kneelawk.codextra.api.attach.AttachmentManager;
 import com.kneelawk.codextra.api.attach.AttachmentKey;
 
 /**
@@ -40,19 +39,7 @@ public class RetrievalMapCodec<A, R> extends MapCodec<R> {
 
     @Override
     public <T> DataResult<R> decode(DynamicOps<T> ops, MapLike<T> input) {
-        AttachmentManager manager = AttachmentManager.getAttachmentManager(ops);
-        if (manager == null) {
-            return DataResult.error(
-                () -> "DynamicOps '" + ops + "' does not support attachments. Attachment '" + key.getName() +
-                    "' not present.");
-        }
-
-        A value = manager.get(key);
-        if (value == null) {
-            return DataResult.error(() -> "Attachment '" + key.getName() + "' not present.");
-        }
-
-        return DataResult.success(retriever.apply(value));
+        return key.getResult(ops).map(retriever);
     }
 
     @Override

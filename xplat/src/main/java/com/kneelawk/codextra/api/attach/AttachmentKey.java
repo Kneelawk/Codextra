@@ -25,23 +25,33 @@
 
 package com.kneelawk.codextra.api.attach;
 
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.DecoderException;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.codextra.api.attach.codec.AttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachingMapCodec;
+import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchCodec;
+import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchMapCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
 import com.kneelawk.codextra.impl.CodextraImpl;
 import com.kneelawk.codextra.impl.FieldNameHelper;
@@ -163,7 +173,7 @@ public class AttachmentKey<A> {
      * Pops a value for this attachment from the given ops.
      *
      * @param ops the ops to pop the attachment from.
-     * @return the popped value or {@code null} if there was none.
+     * @return the popped value, or {@code null} if there was none.
      */
     public @Nullable A pop(DynamicOps<?> ops) {
         return CodextraImpl.pop(ops, this);
@@ -173,7 +183,7 @@ public class AttachmentKey<A> {
      * Pops a value for this attachment from the given ops.
      *
      * @param buf the buffer to pop the attachment from.
-     * @return the popped value or {@code null} if there was none.
+     * @return the popped value, or {@code null} if there was none.
      */
     public @Nullable A pop(ByteBuf buf) {
         return CodextraImpl.pop(buf, this);
@@ -183,9 +193,9 @@ public class AttachmentKey<A> {
      * Gets the current value for this attachment on the given ops.
      *
      * @param ops the dynamic ops to get the attached value from.
-     * @return the current value or {@code null} if there is none.
+     * @return the current value, or {@code null} if there is none.
      */
-    public @Nullable A get(DynamicOps<?> ops) {
+    public @Nullable A getOrNull(DynamicOps<?> ops) {
         AttachmentManager manager = AttachmentManager.getAttachmentManager(ops);
         if (manager == null) return null;
         return manager.get(this);
@@ -195,12 +205,64 @@ public class AttachmentKey<A> {
      * Gets the current value for this attachment on the given buffer.
      *
      * @param buf the buffer to get the attached value from.
-     * @return the current value or {@code null} if there is none.
+     * @return the current value, or {@code null} if there is none.
      */
-    public @Nullable A get(ByteBuf buf) {
+    public @Nullable A getOrNull(ByteBuf buf) {
         AttachmentManager manager = AttachmentManager.getAttachmentManager(buf);
         if (manager == null) return null;
         return manager.get(this);
+    }
+
+    /**
+     * Gets the current value for this attachment on the given ops.
+     * <p>
+     * This is intended for use in custom {@link Codec}s and {@link MapCodec}s.
+     *
+     * @param ops the dynamic ops to get the attached value from.
+     * @return the current value wrapped in {@link DataResult#success(Object)},
+     * or {@link DataResult#error(Supplier)} if this attachment is not present.
+     */
+    public DataResult<A> getResult(DynamicOps<?> ops) {
+        AttachmentManager manager = AttachmentManager.getAttachmentManager(ops);
+        if (manager == null) {
+            return DataResult.error(
+                () -> "DynamicOps '" + ops + "' does not support attachments. Attachment [" + getName() +
+                    "] not present.");
+        }
+
+        A value = manager.get(this);
+        if (value == null) {
+            Set<AttachmentKey<?>> presentAttachments = manager.getAttachments();
+            return DataResult.error(() -> "Attachment [" + getName() + "] not present. Attachments present: [" +
+                presentAttachments.stream().map(AttachmentKey::getName).collect(Collectors.joining(", ")) + "]");
+        }
+
+        return DataResult.success(value);
+    }
+
+    /**
+     * Gets the current value for this attachment on the given buffer or throwing.
+     * <p>
+     * This is intended for use in custom {@link StreamCodec}s.
+     *
+     * @param buf the buffer to get the attached value from.
+     * @return the current value.
+     * @throws DecoderException if this attachment is not present.
+     */
+    public @NotNull A getOrThrow(ByteBuf buf) throws DecoderException {
+        AttachmentManager manager = AttachmentManager.getAttachmentManager(buf);
+        if (manager == null) {
+            throw new DecoderException(
+                "Buffer '" + buf + "' does not support attachments. Attachment [" + getName() + "] not present.");
+        }
+
+        A value = manager.get(this);
+        if (value == null) {
+            throw new DecoderException("Attachment [" + getName() + "] not present. Attachments present: [" +
+                manager.getAttachments().stream().map(AttachmentKey::getName).collect(Collectors.joining(", ")) + "]");
+        }
+
+        return value;
     }
 
     /**
@@ -249,5 +311,49 @@ public class AttachmentKey<A> {
      */
     public <O> RecordCodecBuilder<O, A> retrieve() {
         return retrieve(Function.identity());
+    }
+
+    /**
+     * Creates a {@link Codec} that dispatches based on the retrieved attachment.
+     *
+     * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
+     * @param <R>        the codec type.
+     * @return a codec that dispatches based on the retrieved attachment.
+     */
+    public <R> Codec<R> dispatchCodecResult(Function<A, DataResult<Codec<R>>> dispatcher) {
+        return new AttachmentDispatchCodec<>(this, dispatcher);
+    }
+
+    /**
+     * Creates a {@link Codec} that dispatches based on the retrieved attachment.
+     *
+     * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
+     * @param <R>        the codec type.
+     * @return a codec that dispatches based on the retrieved attachment.
+     */
+    public <R> Codec<R> dispatchCodec(Function<A, Codec<R>> dispatcher) {
+        return dispatchCodecResult(dispatcher.andThen(DataResult::success));
+    }
+
+    /**
+     * Creates a {@link MapCodec} that dispatches based on the retrieved attachment.
+     *
+     * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
+     * @param <R>        the map codec type.
+     * @return a map codec that dispatches based on the retrieved attachment.
+     */
+    public <R> MapCodec<R> dispatchMapCodecResult(Function<A, DataResult<MapCodec<R>>> dispatcher) {
+        return new AttachmentDispatchMapCodec<>(this, dispatcher);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that dispatches based on the retrieved attachment.
+     *
+     * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
+     * @param <R>        the map codec type.
+     * @return a map codec that dispatches based on the retrieved attachment.
+     */
+    public <R> MapCodec<R> dispatchMapCodec(Function<A, MapCodec<R>> dispatcher) {
+        return dispatchMapCodecResult(dispatcher.andThen(DataResult::success));
     }
 }

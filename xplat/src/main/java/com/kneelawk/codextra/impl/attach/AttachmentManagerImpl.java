@@ -26,10 +26,12 @@
 package com.kneelawk.codextra.impl.attach;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
 import com.kneelawk.codextra.api.attach.AttachmentManager;
@@ -63,6 +65,11 @@ public class AttachmentManagerImpl implements AttachmentManager {
         Holder<A> holder = (Holder<A>) holders.get(key);
         if (holder == null) return null;
         return holder.value;
+    }
+
+    @Override
+    public Set<AttachmentKey<?>> getAttachments() {
+        return new ReferenceOpenHashSet<>(holders.keySet());
     }
 
     private static class Holder<A> {

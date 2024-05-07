@@ -100,7 +100,9 @@ class SubmodulePlugin : Plugin<Project> {
                 parchment("org.parchmentmc.data:parchment-$minecraftVersion:$parchmentVersion@zip")
             })
 
-            add("testImplementation", "junit:junit:4.13.2")
+            add("testImplementation", platform("org.junit:junit-bom:5.10.2"))
+            add("testImplementation", "org.junit.jupiter:junit-jupiter")
+            add("testRuntime", "org.junit.platform:junit-platform-launcher")
         }
 
         project.tasks.apply {
@@ -147,7 +149,7 @@ class SubmodulePlugin : Plugin<Project> {
             }
 
             named("test", Test::class.java).configure {
-                useJUnit()
+                useJUnitPlatform()
             }
         }
 
