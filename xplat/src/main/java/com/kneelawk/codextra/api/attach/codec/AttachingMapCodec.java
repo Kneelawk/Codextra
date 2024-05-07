@@ -54,4 +54,9 @@ public class AttachingMapCodec<A, R> extends MapCodec<R> {
         key.pop(attached);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "AttachingMapCodec['" + key.getName() + "': " + value + ", " + wrapped + "]";
+    }
 }

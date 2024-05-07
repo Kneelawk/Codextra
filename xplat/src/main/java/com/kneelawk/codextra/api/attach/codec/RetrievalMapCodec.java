@@ -46,4 +46,9 @@ public class RetrievalMapCodec<A, R> extends MapCodec<R> {
     public <T> RecordBuilder<T> encode(R input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
         return prefix;
     }
+
+    @Override
+    public String toString() {
+        return "RetrievalMapCodec[" + key + " " + retriever + "]";
+    }
 }

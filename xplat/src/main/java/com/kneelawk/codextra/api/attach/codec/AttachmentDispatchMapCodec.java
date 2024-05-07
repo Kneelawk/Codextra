@@ -68,4 +68,9 @@ public class AttachmentDispatchMapCodec<A, R> extends MapCodec<R> {
 
         return dispatched.encode(input, ops, prefix);
     }
+
+    @Override
+    public String toString() {
+        return "AttachmentDispatchMapCodec[" + key + " " + dispatcher + "]";
+    }
 }

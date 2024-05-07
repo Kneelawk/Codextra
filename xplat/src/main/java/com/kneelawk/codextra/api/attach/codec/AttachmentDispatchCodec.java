@@ -39,4 +39,9 @@ public class AttachmentDispatchCodec<A, R> implements Codec<R> {
     public <T> DataResult<T> encode(R input, DynamicOps<T> ops, T prefix) {
         return key.getResult(ops).flatMap(dispatcher).flatMap(codec -> codec.encode(input, ops, prefix));
     }
+
+    @Override
+    public String toString() {
+        return "AttachmentDispatchCodec[" + key + " " + dispatcher + "]";
+    }
 }
