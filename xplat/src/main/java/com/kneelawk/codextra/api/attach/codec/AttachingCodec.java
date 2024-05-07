@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 
-import com.kneelawk.codextra.api.attach.CodecAttachment;
+import com.kneelawk.codextra.api.attach.AttachmentKey;
 
 /**
  * {@link Codec} for attaching a value and passing it as context to the wrapped codec.
@@ -14,7 +14,7 @@ import com.kneelawk.codextra.api.attach.CodecAttachment;
  * @param <A> the attachment type this attaches.
  */
 public class AttachingCodec<A, R> implements Codec<R> {
-    private final CodecAttachment<A> key;
+    private final AttachmentKey<A> key;
     private final A value;
     private final Codec<R> wrapped;
 
@@ -25,7 +25,7 @@ public class AttachingCodec<A, R> implements Codec<R> {
      * @param value   the value to attach.
      * @param wrapped the codec to pass the attachment to.
      */
-    public AttachingCodec(CodecAttachment<A> key, A value, Codec<R> wrapped) {
+    public AttachingCodec(AttachmentKey<A> key, A value, Codec<R> wrapped) {
         this.key = key;
         this.value = value;
         this.wrapped = wrapped;

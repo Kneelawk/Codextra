@@ -8,7 +8,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
-import com.kneelawk.codextra.api.attach.CodecAttachment;
+import com.kneelawk.codextra.api.attach.AttachmentKey;
 
 /**
  * {@link MapCodec} for attaching a value and passing it
@@ -17,7 +17,7 @@ import com.kneelawk.codextra.api.attach.CodecAttachment;
  * @param <R> the type of the map codec this map codec wraps.
  */
 public class AttachingMapCodec<A, R> extends MapCodec<R> {
-    private final CodecAttachment<A> key;
+    private final AttachmentKey<A> key;
     private final A value;
     private final MapCodec<R> wrapped;
 
@@ -28,7 +28,7 @@ public class AttachingMapCodec<A, R> extends MapCodec<R> {
      * @param value   the value to attach.
      * @param wrapped the codec to pass the attachment to.
      */
-    public AttachingMapCodec(CodecAttachment<A> key, A value, MapCodec<R> wrapped) {
+    public AttachingMapCodec(AttachmentKey<A> key, A value, MapCodec<R> wrapped) {
         this.key = key;
         this.value = value;
         this.wrapped = wrapped;

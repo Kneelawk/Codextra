@@ -1,5 +1,5 @@
 # Codextra
 
-Minecraft Codec extras and utilities, including `CodecAttachments`.
+Minecraft Codec extras and utilities, including Attachments.
 
-`CodecAttachments` allow you to transfer context into your Codecs like what Minecraft does with `RegistryOps`.
+Attachments allow you to transfer context into your Codecs like what Minecraft does with `RegistryOps`.

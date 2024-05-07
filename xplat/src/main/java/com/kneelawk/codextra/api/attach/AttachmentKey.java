@@ -45,7 +45,7 @@ import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
 import com.kneelawk.codextra.impl.CodextraImpl;
 
 /**
- * A key for a kind of thing that can be attached to a {@link DynamicOps} or {@link FriendlyByteBuf}.
+ * A typed key allowing things to be attached to a {@link DynamicOps} or {@link FriendlyByteBuf}.
  * <p>
  * Attachments work like stacks, allowing you to push and pop them. Getting the current attachment always retrieves the
  * top-most value.
@@ -53,7 +53,7 @@ import com.kneelawk.codextra.impl.CodextraImpl;
  * @param <A> the type of thing this attaches.
  */
 @SuppressWarnings("unused")
-public class CodecAttachment<A> {
+public class AttachmentKey<A> {
     private final String name;
 
     /**
@@ -63,7 +63,7 @@ public class CodecAttachment<A> {
      * @param <A>  the type this attachment attaches.
      * @return a new codec attachment key.
      */
-    public static <A> CodecAttachment<A> of(ResourceLocation name) {
+    public static <A> AttachmentKey<A> of(ResourceLocation name) {
         return of(name.toString());
     }
 
@@ -74,11 +74,11 @@ public class CodecAttachment<A> {
      * @param <A>  the type this attachment attaches.
      * @return a new codec attachment key.
      */
-    public static <A> CodecAttachment<A> of(String name) {
-        return new CodecAttachment<>(name);
+    public static <A> AttachmentKey<A> of(String name) {
+        return new AttachmentKey<>(name);
     }
 
-    private CodecAttachment(String name) {this.name = name;}
+    private AttachmentKey(String name) {this.name = name;}
 
     /**
      * Gets this attachment's name.

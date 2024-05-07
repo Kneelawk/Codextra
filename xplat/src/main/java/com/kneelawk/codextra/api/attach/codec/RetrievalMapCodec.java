@@ -10,7 +10,7 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
 import com.kneelawk.codextra.api.attach.AttachmentManager;
-import com.kneelawk.codextra.api.attach.CodecAttachment;
+import com.kneelawk.codextra.api.attach.AttachmentKey;
 
 /**
  * {@link MapCodec} for retrieving an attachment.
@@ -19,7 +19,7 @@ import com.kneelawk.codextra.api.attach.CodecAttachment;
  * @param <R> the type of value to return.
  */
 public class RetrievalMapCodec<A, R> extends MapCodec<R> {
-    private final CodecAttachment<A> key;
+    private final AttachmentKey<A> key;
     private final Function<A, R> retriever;
 
     /**
@@ -28,7 +28,7 @@ public class RetrievalMapCodec<A, R> extends MapCodec<R> {
      * @param key       the key of the attachment to retrieve.
      * @param retriever the function that retrieves the desired value from the attachment value.
      */
-    public RetrievalMapCodec(CodecAttachment<A> key, Function<A, R> retriever) {
+    public RetrievalMapCodec(AttachmentKey<A> key, Function<A, R> retriever) {
         this.key = key;
         this.retriever = retriever;
     }

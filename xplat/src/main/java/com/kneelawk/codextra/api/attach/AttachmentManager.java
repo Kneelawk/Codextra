@@ -9,7 +9,7 @@ import com.mojang.serialization.DynamicOps;
 import com.kneelawk.codextra.impl.CodextraImpl;
 
 /**
- * Manages {@link CodecAttachment}s.
+ * Manages {@link AttachmentKey}s.
  * <p>
  * This is usually part of a {@link DynamicOps} or {@link ByteBuf}.
  * <p>
@@ -45,7 +45,7 @@ public interface AttachmentManager {
      * @param value the value to push.
      * @param <A>   the type of attachment.
      */
-    <A> void push(CodecAttachment<A> key, A value);
+    <A> void push(AttachmentKey<A> key, A value);
 
     /**
      * Pops an attachment.
@@ -54,7 +54,7 @@ public interface AttachmentManager {
      * @param <A> the type of attachment.
      * @return the popped attachment or {@code null} if the attachment was not present.
      */
-    <A> @Nullable A pop(CodecAttachment<A> key);
+    <A> @Nullable A pop(AttachmentKey<A> key);
 
     /**
      * Gets the current value of an attachment.
@@ -63,5 +63,5 @@ public interface AttachmentManager {
      * @param <A> the type of attachment.
      * @return the current value of the attachment or {@code null} if the attachment is not present.
      */
-    <A> @Nullable A get(CodecAttachment<A> key);
+    <A> @Nullable A get(AttachmentKey<A> key);
 }

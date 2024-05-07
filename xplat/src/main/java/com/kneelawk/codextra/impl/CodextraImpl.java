@@ -34,14 +34,14 @@ import com.mojang.serialization.DynamicOps;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.DelegatingOps;
 
-import com.kneelawk.codextra.api.attach.CodecAttachment;
+import com.kneelawk.codextra.api.attach.AttachmentKey;
 import com.kneelawk.codextra.impl.attach.AttachmentManagerImpl;
 import com.kneelawk.codextra.impl.attach.AttachmentOps;
 import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
 import com.kneelawk.codextra.impl.mixin.impl.DelegatingOpsAccessor;
 
 public class CodextraImpl {
-    public static <A, T> DynamicOps<T> push(DynamicOps<T> ops, CodecAttachment<A> key, A value) {
+    public static <A, T> DynamicOps<T> push(DynamicOps<T> ops, AttachmentKey<A> key, A value) {
         CodextraAttachmentManagerHolder holder = getHolder(ops);
         if (holder == null) {
             ops = new AttachmentOps<>(ops);
@@ -54,13 +54,13 @@ public class CodextraImpl {
         return ops;
     }
 
-    public static <A> void push(FriendlyByteBuf buf, CodecAttachment<A> key, A value) {
+    public static <A> void push(FriendlyByteBuf buf, AttachmentKey<A> key, A value) {
         CodextraAttachmentManagerHolder holder = (CodextraAttachmentManagerHolder) buf;
         AttachmentManagerImpl manager = holder.codextra_getAttachmentManager();
         manager.push(key, value);
     }
 
-    public static <A> ByteBuf push(ByteBuf buf, CodecAttachment<A> key, A value) {
+    public static <A> ByteBuf push(ByteBuf buf, AttachmentKey<A> key, A value) {
         CodextraAttachmentManagerHolder holder = getHolder(buf);
         if (holder == null) {
             buf = new FriendlyByteBuf(buf);
@@ -73,7 +73,7 @@ public class CodextraImpl {
         return buf;
     }
 
-    public static <A> @Nullable A pop(DynamicOps<?> ops, CodecAttachment<A> key) {
+    public static <A> @Nullable A pop(DynamicOps<?> ops, AttachmentKey<A> key) {
         AttachmentManagerImpl manager = getAttachmentManager(ops);
         if (manager != null) {
             return manager.pop(key);
@@ -81,7 +81,7 @@ public class CodextraImpl {
         return null;
     }
 
-    public static <A> @Nullable A pop(ByteBuf buf, CodecAttachment<A> key) {
+    public static <A> @Nullable A pop(ByteBuf buf, AttachmentKey<A> key) {
         AttachmentManagerImpl manager = getAttachmentManager(buf);
         if (manager != null) {
             return manager.pop(key);

@@ -29,26 +29,26 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
 
+import com.kneelawk.codextra.api.attach.AttachmentKey;
 import com.kneelawk.codextra.api.attach.AttachmentManager;
-import com.kneelawk.codextra.api.attach.CodecAttachment;
 
 public class AttachmentManagerImpl implements AttachmentManager {
-    private final Map<CodecAttachment<?>, Holder<?>> holders = new Object2ObjectOpenHashMap<>();
+    private final Map<AttachmentKey<?>, Holder<?>> holders = new Reference2ObjectLinkedOpenHashMap<>();
 
     public AttachmentManagerImpl() {}
 
     @Override
     @SuppressWarnings("unchecked")
-    public <A> void push(CodecAttachment<A> key, A value) {
+    public <A> void push(AttachmentKey<A> key, A value) {
         Holder<A> cur = new Holder<>(value);
         cur.prev = (Holder<A>) holders.put(key, cur);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <A> @Nullable A pop(CodecAttachment<A> key) {
+    public <A> @Nullable A pop(AttachmentKey<A> key) {
         Holder<A> popped = (Holder<A>) holders.remove(key);
         if (popped == null) return null;
         if (popped.prev != null) {
@@ -59,7 +59,7 @@ public class AttachmentManagerImpl implements AttachmentManager {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <A> @Nullable A get(CodecAttachment<A> key) {
+    public <A> @Nullable A get(AttachmentKey<A> key) {
         Holder<A> holder = (Holder<A>) holders.get(key);
         if (holder == null) return null;
         return holder.value;
