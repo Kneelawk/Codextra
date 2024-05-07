@@ -19,7 +19,7 @@ import com.kneelawk.codextra.api.attach.AttachmentKey;
  */
 public class RetrievalMapCodec<A, R> extends MapCodec<R> {
     private final AttachmentKey<A> key;
-    private final Function<A, R> retriever;
+    private final Function<A, DataResult<R>> retriever;
 
     /**
      * Creates a new {@link RetrievalMapCodec}.
@@ -27,7 +27,7 @@ public class RetrievalMapCodec<A, R> extends MapCodec<R> {
      * @param key       the key of the attachment to retrieve.
      * @param retriever the function that retrieves the desired value from the attachment value.
      */
-    public RetrievalMapCodec(AttachmentKey<A> key, Function<A, R> retriever) {
+    public RetrievalMapCodec(AttachmentKey<A> key, Function<A, DataResult<R>> retriever) {
         this.key = key;
         this.retriever = retriever;
     }
@@ -39,7 +39,7 @@ public class RetrievalMapCodec<A, R> extends MapCodec<R> {
 
     @Override
     public <T> DataResult<R> decode(DynamicOps<T> ops, MapLike<T> input) {
-        return key.getResult(ops).map(retriever);
+        return key.getResult(ops).flatMap(retriever);
     }
 
     @Override

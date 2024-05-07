@@ -43,7 +43,6 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -299,8 +298,20 @@ public class AttachmentKey<A> {
      * @param <R>       the field type.
      * @return a {@link RecordCodecBuilder} field that only returns the retrieved value.
      */
-    public <O, R> RecordCodecBuilder<O, R> retrieve(Function<A, R> retriever) {
+    public <O, R> RecordCodecBuilder<O, R> retrieveResult(Function<A, DataResult<R>> retriever) {
         return new RetrievalMapCodec<>(this, retriever).forGetter(o -> null);
+    }
+
+    /**
+     * Creates a {@link RecordCodecBuilder} that acts as a field, but that only returns the retrieved value.
+     *
+     * @param retriever the function for retrieving the desired value form the attachment value.
+     * @param <O>       the object the field will be a part of.
+     * @param <R>       the field type.
+     * @return a {@link RecordCodecBuilder} field that only returns the retrieved value.
+     */
+    public <O, R> RecordCodecBuilder<O, R> retrieve(Function<A, R> retriever) {
+        return retrieveResult(retriever.andThen(DataResult::success));
     }
 
     /**
@@ -310,7 +321,7 @@ public class AttachmentKey<A> {
      * @return a {@link RecordCodecBuilder} field that only returns the attached value.
      */
     public <O> RecordCodecBuilder<O, A> retrieve() {
-        return retrieve(Function.identity());
+        return retrieveResult(DataResult::success);
     }
 
     /**
