@@ -10,6 +10,7 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
+import com.kneelawk.codextra.api.codec.OpsReplacingRecordBuilder;
 
 /**
  * A {@link MapCodec} that decodes one value and attaches it to the context when decoding the other value.
@@ -64,9 +65,9 @@ public class KeyAttachingCodec<A, R> extends MapCodec<R> {
         A attachment = attachmentResult.result().get();
         prefix = keyCodec.encode(attachment, ops, prefix);
 
-        // FIXME: doesn't change the prefix's ops
         DynamicOps<T> attached = key.push(ops, attachment);
-        prefix = wrappedCodec.encode(input, attached, prefix);
+        prefix = wrappedCodec.encode(input, attached, new OpsReplacingRecordBuilder<>(attached, prefix));
+        if (prefix instanceof OpsReplacingRecordBuilder<T> replacing) prefix = replacing.unwrap();
         key.pop(attached);
 
         return prefix;

@@ -9,6 +9,7 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
+import com.kneelawk.codextra.api.codec.OpsReplacingRecordBuilder;
 
 /**
  * {@link MapCodec} for attaching a value and passing it
@@ -50,7 +51,8 @@ public class AttachingMapCodec<A, R> extends MapCodec<R> {
     @Override
     public <T> RecordBuilder<T> encode(R input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
         DynamicOps<T> attached = key.push(ops, value);
-        RecordBuilder<T> result = wrapped.encode(input, attached, prefix);
+        RecordBuilder<T> result = wrapped.encode(input, attached, new OpsReplacingRecordBuilder<>(attached, prefix));
+        if (result instanceof OpsReplacingRecordBuilder<T> replacing) result = replacing.unwrap();
         key.pop(attached);
         return result;
     }
