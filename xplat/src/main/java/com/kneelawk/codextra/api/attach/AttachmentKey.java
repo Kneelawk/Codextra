@@ -26,6 +26,7 @@
 package com.kneelawk.codextra.api.attach;
 
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -52,6 +53,8 @@ import com.kneelawk.codextra.api.attach.codec.AttachingMapCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchMapCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
+import com.kneelawk.codextra.api.attach.codec.RetrieveWithCodec;
+import com.kneelawk.codextra.api.attach.codec.RetrieveWithMapCodec;
 import com.kneelawk.codextra.impl.CodextraImpl;
 import com.kneelawk.codextra.impl.FieldNameHelper;
 
@@ -322,6 +325,69 @@ public class AttachmentKey<A> {
      */
     public <O> RecordCodecBuilder<O, A> retrieve() {
         return retrieveResult(DataResult::success);
+    }
+
+    /**
+     * Creates a {@link Codec} that decodes a value and combines it with an attachment to create a result.
+     *
+     * @param withCodec the codec for the value to be combined with the attachment.
+     * @param retriever the function that combines the attachment with the decoded value.
+     * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
+     * @param <O>       the type the attachment is combined with.
+     * @param <R>       the result type.
+     * @return a codec that combines its decoded value with an attachment.
+     */
+    public <O, R> Codec<R> retrieveWithCodecResult(Codec<O> withCodec, BiFunction<A, O, DataResult<R>> retriever,
+                                                   BiFunction<A, R, DataResult<O>> reverse) {
+        return new RetrieveWithCodec<>(this, withCodec, retriever, reverse);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that decodes a value and combines it with an attachment to create a result.
+     *
+     * @param withCodec the codec for the value to be combined with the attachment.
+     * @param retriever the function that combines the attachment with the decoded value.
+     * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
+     * @param <O>       the type the attachment is combined with.
+     * @param <R>       the result type.
+     * @return a map codec that combines its decoded value with an attachment.
+     */
+    public <O, R> MapCodec<R> retrieveWithMapCodecResult(MapCodec<O> withCodec,
+                                                         BiFunction<A, O, DataResult<R>> retriever,
+                                                         BiFunction<A, R, DataResult<O>> reverse) {
+        return new RetrieveWithMapCodec<>(this, withCodec, retriever, reverse);
+    }
+
+    /**
+     * Creates a {@link Codec} that decodes a value and combines it with an attachment to create a result.
+     *
+     * @param withCodec the codec for the value to be combined with the attachment.
+     * @param retriever the function that combines the attachment with the decoded value.
+     * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
+     * @param <O>       the type the attachment is combined with.
+     * @param <R>       the result type.
+     * @return a codec that combines its decoded value with an attachment.
+     */
+    public <O, R> Codec<R> retrieveWithCodec(Codec<O> withCodec, BiFunction<A, O, R> retriever,
+                                             BiFunction<A, R, O> reverse) {
+        return new RetrieveWithCodec<>(this, withCodec, retriever.andThen(DataResult::success),
+            reverse.andThen(DataResult::success));
+    }
+
+    /**
+     * Creates a {@link MapCodec} that decodes a value and combines it with an attachment to create a result.
+     *
+     * @param withCodec the codec for the value to be combined with the attachment.
+     * @param retriever the function that combines the attachment with the decoded value.
+     * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
+     * @param <O>       the type the attachment is combined with.
+     * @param <R>       the result type.
+     * @return a map codec that combines its decoded value with an attachment.
+     */
+    public <O, R> MapCodec<R> retrieveWithMapCodec(MapCodec<O> withCodec, BiFunction<A, O, R> retriever,
+                                                   BiFunction<A, R, O> reverse) {
+        return new RetrieveWithMapCodec<>(this, withCodec, retriever.andThen(DataResult::success),
+            reverse.andThen(DataResult::success));
     }
 
     /**
