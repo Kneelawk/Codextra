@@ -100,6 +100,8 @@ class SubmodulePlugin : Plugin<Project> {
                 parchment("org.parchmentmc.data:parchment-$minecraftVersion:$parchmentVersion@zip")
             })
 
+            add("compileOnly", "com.google.code.findbugs:jsr305:3.0.2")
+
             add("testImplementation", platform("org.junit:junit-bom:5.10.2"))
             add("testImplementation", "org.junit.jupiter:junit-jupiter")
             add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
