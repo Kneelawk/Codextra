@@ -56,6 +56,7 @@ import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithMapCodec;
 import com.kneelawk.codextra.api.attach.stream.AttachingStreamCodec;
+import com.kneelawk.codextra.api.attach.stream.RetrievalStreamCodec;
 import com.kneelawk.codextra.impl.CodextraImpl;
 import com.kneelawk.codextra.impl.FieldNameHelper;
 
@@ -368,6 +369,28 @@ public class AttachmentKey<A> {
      */
     public <O> RecordCodecBuilder<O, A> retrieve() {
         return retrieveResult(DataResult::success);
+    }
+
+    /**
+     * Creates a {@link StreamCodec} that retrieves the retrieved value.
+     *
+     * @param retriever the function for retrieving the desired value from the attachment value.
+     * @param <B>       the buffer type.
+     * @param <V>       the value type.
+     * @return the created stream codec.
+     */
+    public <B extends ByteBuf, V> StreamCodec<B, V> retrieveStream(Function<A, V> retriever) {
+        return new RetrievalStreamCodec<>(this, retriever);
+    }
+
+    /**
+     * Creates a {@link StreamCodec} that retrieves the attached value.
+     *
+     * @param <B> the buffer type.
+     * @return the created stream codec.
+     */
+    public <B extends ByteBuf> StreamCodec<B, A> retrieveStream() {
+        return retrieveStream(Function.identity());
     }
 
     /**
