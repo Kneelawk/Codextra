@@ -87,7 +87,6 @@ public class AttachmentKey<A> {
      * @param <A> the type this attachment attaches.
      * @return a new attachment key named after the field it is being stored in.
      */
-    @ApiStatus.Experimental
     public static <A> AttachmentKey<A> ofStaticFieldName() {
         Class<?> caller = STACK_WALKER.getCallerClass();
         String name = caller.getName() + "." +
