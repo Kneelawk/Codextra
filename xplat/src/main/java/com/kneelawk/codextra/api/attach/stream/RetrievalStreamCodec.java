@@ -38,6 +38,7 @@ import com.kneelawk.codextra.api.attach.AttachmentKey;
  *
  * @param <A> the attachment type.
  * @param <B> the buffer type.
+ * @param <V> the result type.
  */
 public class RetrievalStreamCodec<A, B extends ByteBuf, V> implements StreamCodec<B, V> {
     private final AttachmentKey<A> key;
