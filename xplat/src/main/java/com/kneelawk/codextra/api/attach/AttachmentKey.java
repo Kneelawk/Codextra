@@ -31,7 +31,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,7 +84,7 @@ public class AttachmentKey<A> {
      * This is intended so that users can quickly and easily know where the attachment they're missing is located.
      *
      * @param <A> the type this attachment attaches.
-     * @return a new attachment key named after the field it is being stored in.
+     * @return the created attachment key.
      */
     public static <A> AttachmentKey<A> ofStaticFieldName() {
         Class<?> caller = STACK_WALKER.getCallerClass();
@@ -99,7 +98,7 @@ public class AttachmentKey<A> {
      *
      * @param name the name of this attachment. This name is only used for printing error messages.
      * @param <A>  the type this attachment attaches.
-     * @return a new codec attachment key.
+     * @return the created attachment key.
      */
     public static <A> AttachmentKey<A> of(ResourceLocation name) {
         return of(name.toString());
@@ -110,7 +109,7 @@ public class AttachmentKey<A> {
      *
      * @param name the name of this attachment. This name is only used in printing error messages.
      * @param <A>  the type this attachment attaches.
-     * @return a new codec attachment key.
+     * @return the created attachment key.
      */
     public static <A> AttachmentKey<A> of(String name) {
         return new AttachmentKey<>(name);
@@ -135,7 +134,7 @@ public class AttachmentKey<A> {
     /**
      * Pushes an attachment value to the given {@link DynamicOps}.
      * <p>
-     * Note: this <em>may</em> wrap the given ops and return the wrapped ops if the original ops did not support
+     * Note: this <em>may</em> wrap the given ops and return the wrapper ops if the original ops did not support
      * attachments. Always use the returned ops.
      *
      * @param ops   the dynamic ops to attach to and possibly wrap.
@@ -160,7 +159,7 @@ public class AttachmentKey<A> {
     /**
      * Attaches a value to the given {@link ByteBuf}.
      * <p>
-     * Note: this <em>may</em> wrap the given buffer and return the wrapped buffer if the original buffer did not
+     * Note: this <em>may</em> wrap the given buffer and return the wrapper buffer if the original buffer did not
      * support attachments. Always use the returned buffer.
      *
      * @param buf   the buffer to attach to and possibly wrap.
@@ -274,7 +273,7 @@ public class AttachmentKey<A> {
      * @param toAttach the value to attach.
      * @param toWrap   the codec which will receive the attached value.
      * @param <R>      the type the codec handles.
-     * @return a codec that attaches the given value when decoding/encoding the given codec.
+     * @return the created codec.
      */
     public <R> Codec<R> attachingCodec(A toAttach, Codec<R> toWrap) {
         return new AttachingCodec<>(this, toAttach, toWrap);
@@ -287,7 +286,7 @@ public class AttachmentKey<A> {
      * @param toAttach the value to attach.
      * @param toWrap   the codec which will receive the attached value.
      * @param <R>      the type the codec handles.
-     * @return a map codec that attaches the given value when decoding/encoding the given codec.
+     * @return the created map codec.
      */
     public <R> MapCodec<R> attachingMapCodec(A toAttach, MapCodec<R> toWrap) {
         return new AttachingMapCodec<>(this, toAttach, toWrap);
@@ -300,7 +299,7 @@ public class AttachmentKey<A> {
      * @param wrappedCodec     the codec that is invoked with the attachment attached.
      * @param attachmentGetter a function for getting the attachment when given the result type.
      * @param <R>              the result type.
-     * @return a map codec that decodes a value and attaches it while decoding the result value.
+     * @return the created map codec.
      */
     public <R> MapCodec<R> keyAttachingCodecResult(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
                                                    Function<R, DataResult<A>> attachmentGetter) {
@@ -314,7 +313,7 @@ public class AttachmentKey<A> {
      * @param wrappedCodec     the codec that is invoked with the attachment attached.
      * @param attachmentGetter a function for getting the attachment when given the result type.
      * @param <R>              the result type.
-     * @return a map codec that decodes a value and attaches it while decoding the result value.
+     * @return the created map codec.
      */
     public <R> MapCodec<R> keyAttachingCodec(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
                                              Function<R, A> attachmentGetter) {
@@ -327,7 +326,7 @@ public class AttachmentKey<A> {
      * @param retriever the function for retrieving the desired value form the attachment value.
      * @param <O>       the object the field will be a part of.
      * @param <R>       the field type.
-     * @return a {@link RecordCodecBuilder} field that only returns the retrieved value.
+     * @return the created {@link RecordCodecBuilder}.
      */
     public <O, R> RecordCodecBuilder<O, R> retrieveResult(Function<A, DataResult<R>> retriever) {
         return new RetrievalMapCodec<>(this, retriever).forGetter(o -> null);
@@ -339,7 +338,7 @@ public class AttachmentKey<A> {
      * @param retriever the function for retrieving the desired value form the attachment value.
      * @param <O>       the object the field will be a part of.
      * @param <R>       the field type.
-     * @return a {@link RecordCodecBuilder} field that only returns the retrieved value.
+     * @return the created {@link RecordCodecBuilder}.
      */
     public <O, R> RecordCodecBuilder<O, R> retrieve(Function<A, R> retriever) {
         return retrieveResult(retriever.andThen(DataResult::success));
@@ -349,7 +348,7 @@ public class AttachmentKey<A> {
      * Creates a {@link RecordCodecBuilder} that acts as a field, but that only returns the attached value.
      *
      * @param <O> the object type the field will be a part of.
-     * @return a {@link RecordCodecBuilder} field that only returns the attached value.
+     * @return the created {@link RecordCodecBuilder}.
      */
     public <O> RecordCodecBuilder<O, A> retrieve() {
         return retrieveResult(DataResult::success);
@@ -363,7 +362,7 @@ public class AttachmentKey<A> {
      * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
      * @param <O>       the type the attachment is combined with.
      * @param <R>       the result type.
-     * @return a codec that combines its decoded value with an attachment.
+     * @return the created codec.
      */
     public <O, R> Codec<R> retrieveWithCodecResult(Codec<O> withCodec, BiFunction<A, O, DataResult<R>> retriever,
                                                    BiFunction<A, R, DataResult<O>> reverse) {
@@ -378,7 +377,7 @@ public class AttachmentKey<A> {
      * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
      * @param <O>       the type the attachment is combined with.
      * @param <R>       the result type.
-     * @return a map codec that combines its decoded value with an attachment.
+     * @return the created map codec.
      */
     public <O, R> MapCodec<R> retrieveWithMapCodecResult(MapCodec<O> withCodec,
                                                          BiFunction<A, O, DataResult<R>> retriever,
@@ -394,7 +393,7 @@ public class AttachmentKey<A> {
      * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
      * @param <O>       the type the attachment is combined with.
      * @param <R>       the result type.
-     * @return a codec that combines its decoded value with an attachment.
+     * @return the created codec.
      */
     public <O, R> Codec<R> retrieveWithCodec(Codec<O> withCodec, BiFunction<A, O, R> retriever,
                                              BiFunction<A, R, O> reverse) {
@@ -410,7 +409,7 @@ public class AttachmentKey<A> {
      * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
      * @param <O>       the type the attachment is combined with.
      * @param <R>       the result type.
-     * @return a map codec that combines its decoded value with an attachment.
+     * @return the created map codec.
      */
     public <O, R> MapCodec<R> retrieveWithMapCodec(MapCodec<O> withCodec, BiFunction<A, O, R> retriever,
                                                    BiFunction<A, R, O> reverse) {
@@ -423,7 +422,7 @@ public class AttachmentKey<A> {
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
      * @param <R>        the codec type.
-     * @return a codec that dispatches based on the retrieved attachment.
+     * @return the created codec.
      */
     public <R> Codec<R> dispatchCodecResult(Function<A, DataResult<Codec<R>>> dispatcher) {
         return new AttachmentDispatchCodec<>(this, dispatcher);
@@ -434,7 +433,7 @@ public class AttachmentKey<A> {
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
      * @param <R>        the codec type.
-     * @return a codec that dispatches based on the retrieved attachment.
+     * @return the created codec.
      */
     public <R> Codec<R> dispatchCodec(Function<A, Codec<R>> dispatcher) {
         return dispatchCodecResult(dispatcher.andThen(DataResult::success));
@@ -445,7 +444,7 @@ public class AttachmentKey<A> {
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
      * @param <R>        the map codec type.
-     * @return a map codec that dispatches based on the retrieved attachment.
+     * @return the created map codec.
      */
     public <R> MapCodec<R> dispatchMapCodecResult(Function<A, DataResult<MapCodec<R>>> dispatcher) {
         return new AttachmentDispatchMapCodec<>(this, dispatcher);
@@ -456,7 +455,7 @@ public class AttachmentKey<A> {
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
      * @param <R>        the map codec type.
-     * @return a map codec that dispatches based on the retrieved attachment.
+     * @return the created map codec.
      */
     public <R> MapCodec<R> dispatchMapCodec(Function<A, MapCodec<R>> dispatcher) {
         return dispatchMapCodecResult(dispatcher.andThen(DataResult::success));

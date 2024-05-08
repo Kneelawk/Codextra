@@ -22,7 +22,7 @@ public class OpsReplacingRecordBuilder<T> implements RecordBuilder<T> {
      * @param delegate the registry builder to wrap.
      * @param newOps   the ops to use instead of the delegates ops.
      * @param <T>      the type this record builder builds.
-     * @return a record builder with the given ops.
+     * @return the wrapper record builder, with the given ops.
      */
     public static <T> RecordBuilder<T> wrap(RecordBuilder<T> delegate, DynamicOps<T> newOps) {
         if (delegate instanceof OpsReplacingRecordBuilder<T> replacing) {

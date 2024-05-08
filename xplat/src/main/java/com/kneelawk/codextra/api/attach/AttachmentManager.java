@@ -73,7 +73,7 @@ public interface AttachmentManager {
      * This set is not updated when the attachment manger's attachments change and changes to the returned set will not
      * be reflected in this attachment manager's attachments.
      *
-     * @return a set of all attachments currently attached.
+     * @return the set of all attachments currently attached.
      */
     Set<AttachmentKey<?>> getAttachments();
 }
