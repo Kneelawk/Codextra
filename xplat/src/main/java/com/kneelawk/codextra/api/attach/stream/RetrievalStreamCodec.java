@@ -43,6 +43,12 @@ public class RetrievalStreamCodec<A, B extends ByteBuf, V> implements StreamCode
     private final AttachmentKey<A> key;
     private final Function<A, V> retriever;
 
+    /**
+     * Creates a new {@link RetrievalStreamCodec}.
+     *
+     * @param key       the attachment key to look up.
+     * @param retriever the function that gets the desired value from the attachment.
+     */
     public RetrievalStreamCodec(AttachmentKey<A> key, Function<A, V> retriever) {
         this.key = key;
         this.retriever = retriever;
