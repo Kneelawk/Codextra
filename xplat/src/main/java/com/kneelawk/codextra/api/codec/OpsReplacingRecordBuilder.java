@@ -17,12 +17,51 @@ public class OpsReplacingRecordBuilder<T> implements RecordBuilder<T> {
     private final RecordBuilder<T> delegate;
 
     /**
+     * Wraps the given builder, so that it uses the given ops.
+     *
+     * @param delegate the registry builder to wrap.
+     * @param newOps   the ops to use instead of the delegates ops.
+     * @param <T>      the type this record builder builds.
+     * @return a record builder with the given ops.
+     */
+    public static <T> RecordBuilder<T> wrap(RecordBuilder<T> delegate, DynamicOps<T> newOps) {
+        if (delegate instanceof OpsReplacingRecordBuilder<T> replacing) {
+            replacing.setOps(newOps);
+            return replacing;
+        } else {
+            return new OpsReplacingRecordBuilder<>(delegate, newOps);
+        }
+    }
+
+    /**
+     * Unwraps the given builder if it is an ops-replacing builder.
+     *
+     * @param wrapped     the builder returned by {@link com.mojang.serialization.MapCodec#encode(Object, DynamicOps, RecordBuilder)}.
+     * @param original    the original builder before it got wrapped.
+     * @param originalOps the original ops before it was changed.
+     * @param <T>         the type this record builder builds.
+     * @return the unwrapped builder.
+     */
+    public static <T> RecordBuilder<T> unwrap(RecordBuilder<T> wrapped, RecordBuilder<T> original,
+                                              DynamicOps<T> originalOps) {
+        if (wrapped instanceof OpsReplacingRecordBuilder<T> replacing) {
+            if (wrapped == original) {
+                replacing.setOps(originalOps);
+                return replacing;
+            } else {
+                return replacing.unwrap();
+            }
+        }
+        return wrapped;
+    }
+
+    /**
      * Creates a new {@link OpsReplacingRecordBuilder}.
      *
-     * @param ops      the ops to use instead of the delegate's ops.
      * @param delegate the delegate.
+     * @param ops      the ops to use instead of the delegate's ops.
      */
-    public OpsReplacingRecordBuilder(DynamicOps<T> ops, RecordBuilder<T> delegate) {
+    private OpsReplacingRecordBuilder(RecordBuilder<T> delegate, DynamicOps<T> ops) {
         this.ops = ops;
         this.delegate = delegate;
     }
@@ -32,7 +71,7 @@ public class OpsReplacingRecordBuilder<T> implements RecordBuilder<T> {
      *
      * @return this record builder's delegate.
      */
-    public RecordBuilder<T> unwrap() {
+    private RecordBuilder<T> unwrap() {
         return delegate;
     }
 
@@ -41,16 +80,17 @@ public class OpsReplacingRecordBuilder<T> implements RecordBuilder<T> {
      *
      * @param ops the new ops.
      */
-    public void setOps(DynamicOps<T> ops) {
+    private void setOps(DynamicOps<T> ops) {
         this.ops = ops;
     }
 
     private RecordBuilder<T> res(RecordBuilder<T> res) {
         if (res == delegate) return this;
         if (res instanceof OpsReplacingRecordBuilder<T> replacing) {
-
+            replacing.setOps(ops);
+            return replacing;
         }
-        return new OpsReplacingRecordBuilder<>(ops, res);
+        return new OpsReplacingRecordBuilder<>(res, ops);
     }
 
     @Override

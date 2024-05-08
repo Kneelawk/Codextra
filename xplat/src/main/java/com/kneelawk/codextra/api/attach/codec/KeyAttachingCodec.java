@@ -66,10 +66,10 @@ public class KeyAttachingCodec<A, R> extends MapCodec<R> {
         prefix = keyCodec.encode(attachment, ops, prefix);
 
         DynamicOps<T> attached = key.push(ops, attachment);
-        prefix = wrappedCodec.encode(input, attached, new OpsReplacingRecordBuilder<>(attached, prefix));
-        if (prefix instanceof OpsReplacingRecordBuilder<T> replacing) prefix = replacing.unwrap();
+        RecordBuilder<T> wrapped =
+            wrappedCodec.encode(input, attached, OpsReplacingRecordBuilder.wrap(prefix, attached));
         key.pop(attached);
 
-        return prefix;
+        return OpsReplacingRecordBuilder.unwrap(wrapped, prefix, ops);
     }
 }
