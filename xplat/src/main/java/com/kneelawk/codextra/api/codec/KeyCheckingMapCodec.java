@@ -15,17 +15,17 @@ import com.mojang.serialization.RecordBuilder;
  *
  * @param <O> the type that this map codec wraps.
  */
-public class OptionalMapCodec<O> extends MapCodec<Optional<O>> {
+public class KeyCheckingMapCodec<O> extends MapCodec<Optional<O>> {
     private final Collection<String> requiredKeys;
     private final MapCodec<O> wrapped;
 
     /**
-     * Creates an {@link OptionalMapCodec}.
+     * Creates an {@link KeyCheckingMapCodec}.
      *
      * @param requiredKeys the keys that must be present in order to decode the wrapped type.
      * @param wrapped      the map codec for the wrapped type.
      */
-    public OptionalMapCodec(Collection<String> requiredKeys, MapCodec<O> wrapped) {
+    public KeyCheckingMapCodec(Collection<String> requiredKeys, MapCodec<O> wrapped) {
         this.requiredKeys = requiredKeys;
         this.wrapped = wrapped;
     }
