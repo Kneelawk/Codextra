@@ -55,6 +55,7 @@ import com.kneelawk.codextra.api.attach.codec.KeyAttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithMapCodec;
+import com.kneelawk.codextra.api.attach.stream.AttachingStreamCodec;
 import com.kneelawk.codextra.impl.CodextraImpl;
 import com.kneelawk.codextra.impl.FieldNameHelper;
 
@@ -290,6 +291,21 @@ public class AttachmentKey<A> {
      */
     public <R> MapCodec<R> attachingMapCodec(A toAttach, MapCodec<R> toWrap) {
         return new AttachingMapCodec<>(this, toAttach, toWrap);
+    }
+
+    /**
+     * Creates a {@link StreamCodec} that attaches the given value to the codec context when decoding/encoding the
+     * wrapped codec.
+     *
+     * @param toAttach the value to attach.
+     * @param toWrap   the codec which will receive the attached value.
+     * @param <B>      the buffer type.
+     * @param <V>      the result type.
+     * @return the created stream codec.
+     */
+    public <B extends FriendlyByteBuf, V> StreamCodec<B, V> attachingStreamCodec(A toAttach,
+                                                                                 StreamCodec<? super B, V> toWrap) {
+        return new AttachingStreamCodec<>(this, toAttach, toWrap);
     }
 
     /**
