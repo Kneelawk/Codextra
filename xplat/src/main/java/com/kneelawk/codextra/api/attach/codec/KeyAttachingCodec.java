@@ -21,7 +21,7 @@ public class KeyAttachingCodec<A, R> extends MapCodec<R> {
     private final AttachmentKey<A> key;
     private final MapCodec<A> keyCodec;
     private final MapCodec<R> wrappedCodec;
-    private final Function<R, DataResult<A>> attachmentGetter;
+    private final Function<? super R, ? extends DataResult<? extends A>> attachmentGetter;
 
     /**
      * Creates a new {@link KeyAttachingCodec}.
@@ -32,7 +32,7 @@ public class KeyAttachingCodec<A, R> extends MapCodec<R> {
      * @param attachmentGetter a function for getting the attachment when given the result type.
      */
     public KeyAttachingCodec(AttachmentKey<A> key, MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
-                             Function<R, DataResult<A>> attachmentGetter) {
+                             Function<? super R, ? extends DataResult<? extends A>> attachmentGetter) {
         this.key = key;
         this.keyCodec = keyCodec;
         this.wrappedCodec = wrappedCodec;
@@ -56,7 +56,7 @@ public class KeyAttachingCodec<A, R> extends MapCodec<R> {
 
     @Override
     public <T> RecordBuilder<T> encode(R input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-        DataResult<A> attachmentResult = attachmentGetter.apply(input);
+        DataResult<? extends A> attachmentResult = attachmentGetter.apply(input);
         if (attachmentResult.isError()) {
             return prefix.withErrorsFrom(attachmentResult);
         }

@@ -42,7 +42,7 @@ import com.kneelawk.codextra.api.attach.AttachmentKey;
  */
 public class RetrievalStreamCodec<A, B extends ByteBuf, V> implements StreamCodec<B, V> {
     private final AttachmentKey<A> key;
-    private final Function<A, V> retriever;
+    private final Function<? super A, ? extends V> retriever;
 
     /**
      * Creates a new {@link RetrievalStreamCodec}.
@@ -50,7 +50,7 @@ public class RetrievalStreamCodec<A, B extends ByteBuf, V> implements StreamCode
      * @param key       the attachment key to look up.
      * @param retriever the function that gets the desired value from the attachment.
      */
-    public RetrievalStreamCodec(AttachmentKey<A> key, Function<A, V> retriever) {
+    public RetrievalStreamCodec(AttachmentKey<A> key, Function<? super A, ? extends V> retriever) {
         this.key = key;
         this.retriever = retriever;
     }

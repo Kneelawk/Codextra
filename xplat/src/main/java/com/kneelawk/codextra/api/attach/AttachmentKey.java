@@ -319,7 +319,7 @@ public class AttachmentKey<A> {
      * @return the created map codec.
      */
     public <R> MapCodec<R> keyAttachingCodecResult(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
-                                                   Function<R, DataResult<A>> attachmentGetter) {
+                                                   Function<? super R, ? extends DataResult<? extends A>> attachmentGetter) {
         return new KeyAttachingCodec<>(this, keyCodec, wrappedCodec, attachmentGetter);
     }
 
@@ -333,7 +333,7 @@ public class AttachmentKey<A> {
      * @return the created map codec.
      */
     public <R> MapCodec<R> keyAttachingCodec(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
-                                             Function<R, A> attachmentGetter) {
+                                             Function<? super R, ? extends A> attachmentGetter) {
         return keyAttachingCodecResult(keyCodec, wrappedCodec, attachmentGetter.andThen(DataResult::success));
     }
 
@@ -345,7 +345,8 @@ public class AttachmentKey<A> {
      * @param <R>       the field type.
      * @return the created {@link RecordCodecBuilder}.
      */
-    public <O, R> RecordCodecBuilder<O, R> retrieveResult(Function<A, DataResult<R>> retriever) {
+    public <O, R> RecordCodecBuilder<O, R> retrieveResult(
+        Function<? super A, ? extends DataResult<? extends R>> retriever) {
         return new RetrievalMapCodec<>(this, retriever).forGetter(o -> null);
     }
 
@@ -357,7 +358,7 @@ public class AttachmentKey<A> {
      * @param <R>       the field type.
      * @return the created {@link RecordCodecBuilder}.
      */
-    public <O, R> RecordCodecBuilder<O, R> retrieve(Function<A, R> retriever) {
+    public <O, R> RecordCodecBuilder<O, R> retrieve(Function<? super A, ? extends R> retriever) {
         return retrieveResult(retriever.andThen(DataResult::success));
     }
 
@@ -379,7 +380,7 @@ public class AttachmentKey<A> {
      * @param <V>       the value type.
      * @return the created stream codec.
      */
-    public <B extends ByteBuf, V> StreamCodec<B, V> retrieveStream(Function<A, V> retriever) {
+    public <B extends ByteBuf, V> StreamCodec<B, V> retrieveStream(Function<? super A, ? extends V> retriever) {
         return new RetrievalStreamCodec<>(this, retriever);
     }
 
@@ -403,8 +404,9 @@ public class AttachmentKey<A> {
      * @param <R>       the result type.
      * @return the created codec.
      */
-    public <O, R> Codec<R> retrieveWithCodecResult(Codec<O> withCodec, BiFunction<A, O, DataResult<R>> retriever,
-                                                   BiFunction<A, R, DataResult<O>> reverse) {
+    public <O, R> Codec<R> retrieveWithCodecResult(Codec<O> withCodec,
+                                                   BiFunction<? super A, ? super O, ? extends DataResult<? extends R>> retriever,
+                                                   BiFunction<? super A, ? super R, ? extends DataResult<? extends O>> reverse) {
         return new RetrieveWithCodec<>(this, withCodec, retriever, reverse);
     }
 
@@ -419,8 +421,8 @@ public class AttachmentKey<A> {
      * @return the created map codec.
      */
     public <O, R> MapCodec<R> retrieveWithMapCodecResult(MapCodec<O> withCodec,
-                                                         BiFunction<A, O, DataResult<R>> retriever,
-                                                         BiFunction<A, R, DataResult<O>> reverse) {
+                                                         BiFunction<? super A, ? super O, ? extends DataResult<? extends R>> retriever,
+                                                         BiFunction<? super A, ? super R, ? extends DataResult<? extends O>> reverse) {
         return new RetrieveWithMapCodec<>(this, withCodec, retriever, reverse);
     }
 
@@ -434,9 +436,10 @@ public class AttachmentKey<A> {
      * @param <R>       the result type.
      * @return the created codec.
      */
-    public <O, R> Codec<R> retrieveWithCodec(Codec<O> withCodec, BiFunction<A, O, R> retriever,
-                                             BiFunction<A, R, O> reverse) {
-        return new RetrieveWithCodec<>(this, withCodec, retriever.andThen(DataResult::success),
+    public <O, R> Codec<R> retrieveWithCodec(Codec<O> withCodec,
+                                             BiFunction<? super A, ? super O, ? extends R> retriever,
+                                             BiFunction<? super A, ? super R, ? extends O> reverse) {
+        return retrieveWithCodecResult(withCodec, retriever.andThen(DataResult::success),
             reverse.andThen(DataResult::success));
     }
 
@@ -450,9 +453,10 @@ public class AttachmentKey<A> {
      * @param <R>       the result type.
      * @return the created map codec.
      */
-    public <O, R> MapCodec<R> retrieveWithMapCodec(MapCodec<O> withCodec, BiFunction<A, O, R> retriever,
-                                                   BiFunction<A, R, O> reverse) {
-        return new RetrieveWithMapCodec<>(this, withCodec, retriever.andThen(DataResult::success),
+    public <O, R> MapCodec<R> retrieveWithMapCodec(MapCodec<O> withCodec,
+                                                   BiFunction<? super A, ? super O, ? extends R> retriever,
+                                                   BiFunction<? super A, ? super R, ? extends O> reverse) {
+        return retrieveWithMapCodecResult(withCodec, retriever.andThen(DataResult::success),
             reverse.andThen(DataResult::success));
     }
 
@@ -463,7 +467,8 @@ public class AttachmentKey<A> {
      * @param <R>        the codec type.
      * @return the created codec.
      */
-    public <R> Codec<R> dispatchCodecResult(Function<A, DataResult<Codec<R>>> dispatcher) {
+    public <R> Codec<R> dispatchCodecResult(
+        Function<? super A, ? extends DataResult<? extends Codec<? extends R>>> dispatcher) {
         return new AttachmentDispatchCodec<>(this, dispatcher);
     }
 
@@ -474,7 +479,7 @@ public class AttachmentKey<A> {
      * @param <R>        the codec type.
      * @return the created codec.
      */
-    public <R> Codec<R> dispatchCodec(Function<A, Codec<R>> dispatcher) {
+    public <R> Codec<R> dispatchCodec(Function<? super A, ? extends Codec<? extends R>> dispatcher) {
         return dispatchCodecResult(dispatcher.andThen(DataResult::success));
     }
 
@@ -485,7 +490,8 @@ public class AttachmentKey<A> {
      * @param <R>        the map codec type.
      * @return the created map codec.
      */
-    public <R> MapCodec<R> dispatchMapCodecResult(Function<A, DataResult<MapCodec<R>>> dispatcher) {
+    public <R> MapCodec<R> dispatchMapCodecResult(
+        Function<? super A, ? extends DataResult<? extends MapCodec<? extends R>>> dispatcher) {
         return new AttachmentDispatchMapCodec<>(this, dispatcher);
     }
 
@@ -496,7 +502,7 @@ public class AttachmentKey<A> {
      * @param <R>        the map codec type.
      * @return the created map codec.
      */
-    public <R> MapCodec<R> dispatchMapCodec(Function<A, MapCodec<R>> dispatcher) {
+    public <R> MapCodec<R> dispatchMapCodec(Function<? super A, ? extends MapCodec<? extends R>> dispatcher) {
         return dispatchMapCodecResult(dispatcher.andThen(DataResult::success));
     }
 }

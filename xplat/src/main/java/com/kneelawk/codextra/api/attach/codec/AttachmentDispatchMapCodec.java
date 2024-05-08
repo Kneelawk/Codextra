@@ -21,7 +21,7 @@ public class AttachmentDispatchMapCodec<A, R> extends MapCodec<R> {
     private static final String COMPRESSED_KEY = "dispatched";
 
     private final AttachmentKey<A> key;
-    private final Function<A, DataResult<MapCodec<R>>> dispatcher;
+    private final Function<? super A, ? extends DataResult<? extends MapCodec<? extends R>>> dispatcher;
 
     /**
      * Creates a new {@link AttachmentDispatchMapCodec}.
@@ -29,7 +29,8 @@ public class AttachmentDispatchMapCodec<A, R> extends MapCodec<R> {
      * @param key        the key of the attachment to retrieve.
      * @param dispatcher the function to get the codec based on the retrieved attachment.
      */
-    public AttachmentDispatchMapCodec(AttachmentKey<A> key, Function<A, DataResult<MapCodec<R>>> dispatcher) {
+    public AttachmentDispatchMapCodec(AttachmentKey<A> key,
+                                      Function<? super A, ? extends DataResult<? extends MapCodec<? extends R>>> dispatcher) {
         this.key = key;
         this.dispatcher = dispatcher;
     }
@@ -42,26 +43,30 @@ public class AttachmentDispatchMapCodec<A, R> extends MapCodec<R> {
     @Override
     public <T> DataResult<R> decode(DynamicOps<T> ops, MapLike<T> input) {
         if (ops.compressMaps()) {
-            return key.getResult(ops).flatMap(dispatcher).flatMap(codec -> {
+            return key.getResult(ops).flatMap(dispatcher.andThen(Function.identity())).flatMap(codec -> {
                 T inputObj = input.get(COMPRESSED_KEY);
                 if (inputObj == null) {
                     return DataResult.error(() -> "Input does not have \"" + COMPRESSED_KEY + "\" entry: " + input);
                 }
-                return codec.decoder().parse(ops, inputObj);
+                return codec.decoder().parse(ops, inputObj).map(Function.identity());
             });
         }
 
-        return key.getResult(ops).flatMap(dispatcher).flatMap(codec -> codec.decode(ops, input));
+        return key.getResult(ops).flatMap(dispatcher.andThen(Function.identity()))
+            .flatMap(codec -> codec.decode(ops, input)).map(Function.identity());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> RecordBuilder<T> encode(R input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-        DataResult<MapCodec<R>> dispatchedResult = key.getResult(ops).flatMap(dispatcher);
+        DataResult<? extends MapCodec<? extends R>> dispatchedResult =
+            key.getResult(ops).flatMap(dispatcher.andThen(Function.identity()));
         if (dispatchedResult.isError()) {
             return prefix.withErrorsFrom(dispatchedResult);
         }
 
-        MapCodec<R> dispatched = dispatchedResult.result().get();
+        // intentional cast, as dispatching makes sure the same codec is used for encoding as decoding
+        MapCodec<R> dispatched = (MapCodec<R>) dispatchedResult.result().get();
         if (ops.compressMaps()) {
             return prefix.add(COMPRESSED_KEY, dispatched.codec().encodeStart(ops, input));
         }

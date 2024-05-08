@@ -1,6 +1,7 @@
 package com.kneelawk.codextra.api.attach.codec;
 
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.mojang.serialization.DataResult;
@@ -21,8 +22,8 @@ import com.kneelawk.codextra.api.attach.AttachmentKey;
 public class RetrieveWithMapCodec<A, O, R> extends MapCodec<R> {
     private final AttachmentKey<A> key;
     private final MapCodec<O> withCodec;
-    private final BiFunction<A, O, DataResult<R>> retriever;
-    private final BiFunction<A, R, DataResult<O>> reverse;
+    private final BiFunction<? super A, ? super O, ? extends DataResult<? extends R>> retriever;
+    private final BiFunction<? super A, ? super R, ? extends DataResult<? extends O>> reverse;
 
     /**
      * Creates a new {@link RetrieveWithMapCodec}.
@@ -32,8 +33,9 @@ public class RetrieveWithMapCodec<A, O, R> extends MapCodec<R> {
      * @param retriever the function that combines the attachment with the decoded value.
      * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
      */
-    public RetrieveWithMapCodec(AttachmentKey<A> key, MapCodec<O> withCodec, BiFunction<A, O, DataResult<R>> retriever,
-                                BiFunction<A, R, DataResult<O>> reverse) {
+    public RetrieveWithMapCodec(AttachmentKey<A> key, MapCodec<O> withCodec,
+                                BiFunction<? super A, ? super O, ? extends DataResult<? extends R>> retriever,
+                                BiFunction<? super A, ? super R, ? extends DataResult<? extends O>> reverse) {
         this.key = key;
         this.withCodec = withCodec;
         this.retriever = retriever;
@@ -48,12 +50,14 @@ public class RetrieveWithMapCodec<A, O, R> extends MapCodec<R> {
     @Override
     public <T> DataResult<R> decode(DynamicOps<T> ops, MapLike<T> input) {
         return key.getResult(ops)
-            .flatMap(attachment -> withCodec.decode(ops, input).flatMap(with -> retriever.apply(attachment, with)));
+            .flatMap(attachment -> withCodec.decode(ops, input).flatMap(with -> retriever.apply(attachment, with))
+                .map(Function.identity()));
     }
 
     @Override
     public <T> RecordBuilder<T> encode(R input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-        DataResult<O> result = key.getResult(ops).flatMap(attachment -> reverse.apply(attachment, input));
+        DataResult<O> result =
+            key.getResult(ops).flatMap(attachment -> reverse.apply(attachment, input).map(Function.identity()));
         if (result.isError()) {
             return prefix.withErrorsFrom(result);
         }
