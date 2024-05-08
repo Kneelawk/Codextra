@@ -10,7 +10,6 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
-import com.kneelawk.codextra.api.codec.OpsReplacingRecordBuilder;
 
 /**
  * A {@link MapCodec} that decodes one value and attaches it to the context when decoding the other value.

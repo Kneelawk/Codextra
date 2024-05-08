@@ -9,7 +9,6 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
-import com.kneelawk.codextra.api.codec.OpsReplacingRecordBuilder;
 
 /**
  * {@link MapCodec} for attaching a value and passing it

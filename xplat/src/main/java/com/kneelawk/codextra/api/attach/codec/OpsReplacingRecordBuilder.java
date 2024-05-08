@@ -1,4 +1,4 @@
-package com.kneelawk.codextra.api.codec;
+package com.kneelawk.codextra.api.attach.codec;
 
 import java.util.function.UnaryOperator;
 
