@@ -69,6 +69,8 @@ import com.kneelawk.codextra.impl.FieldNameHelper;
  * <p>
  * Attachments work like stacks, allowing you to push and pop them. Getting the current attachment always retrieves the
  * top-most value.
+ * <p>
+ * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
  *
  * @param <A> the type of thing this attaches.
  */
