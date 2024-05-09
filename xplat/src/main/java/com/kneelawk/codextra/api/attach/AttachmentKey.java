@@ -25,6 +25,7 @@
 
 package com.kneelawk.codextra.api.attach;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -275,6 +276,19 @@ public class AttachmentKey<A> {
     }
 
     /**
+     * Creates a {@link Codec} that attaches the given values to the codec context when decoding/encoding the
+     * wrapped codec.
+     *
+     * @param attachmentMap the map of attachments to attach.
+     * @param toWrap        the codec which will receive the attached values.
+     * @param <R>           the type the codec handles.
+     * @return the created codec.
+     */
+    public static <R> Codec<R> attachingCodec(Map<AttachmentKey<?>, ?> attachmentMap, Codec<R> toWrap) {
+        return new AttachingCodec<>(attachmentMap, toWrap);
+    }
+
+    /**
      * Creates a {@link Codec} that attaches the given value to the codec context when decoding/encoding the
      * wrapped codec.
      *
@@ -284,7 +298,20 @@ public class AttachmentKey<A> {
      * @return the created codec.
      */
     public <R> Codec<R> attachingCodec(A toAttach, Codec<R> toWrap) {
-        return new AttachingCodec<>(this, toAttach, toWrap);
+        return AttachingCodec.single(this, toAttach, toWrap);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that attaches the given values to the codec context when decoding/encoding the
+     * wrapped codec.
+     *
+     * @param attachmentMap the map of attachments to attach.
+     * @param toWrap        the codec which will receive the attached values.
+     * @param <R>           the type the codec handles.
+     * @return the created map codec.
+     */
+    public static <R> MapCodec<R> attachingMapCodec(Map<AttachmentKey<?>, ?> attachmentMap, MapCodec<R> toWrap) {
+        return new AttachingMapCodec<>(attachmentMap, toWrap);
     }
 
     /**
@@ -297,7 +324,22 @@ public class AttachmentKey<A> {
      * @return the created map codec.
      */
     public <R> MapCodec<R> attachingMapCodec(A toAttach, MapCodec<R> toWrap) {
-        return new AttachingMapCodec<>(this, toAttach, toWrap);
+        return AttachingMapCodec.single(this, toAttach, toWrap);
+    }
+
+    /**
+     * Creates a {@link StreamCodec} that attaches the given values to the codec context when decoding/encoding the
+     * wrapped codec.
+     *
+     * @param attachmentMap the map of attachments to attach.
+     * @param toWrap        the codec which will receive the attached values.
+     * @param <B>           the buffer type.
+     * @param <V>           the type the codec handles.
+     * @return the created stream codec.
+     */
+    public static <B extends FriendlyByteBuf, V> StreamCodec<B, V> attachingStreamCodec(
+        Map<AttachmentKey<?>, ?> attachmentMap, StreamCodec<? super B, V> toWrap) {
+        return new AttachingStreamCodec<>(attachmentMap, toWrap);
     }
 
     /**
@@ -307,12 +349,12 @@ public class AttachmentKey<A> {
      * @param toAttach the value to attach.
      * @param toWrap   the codec which will receive the attached value.
      * @param <B>      the buffer type.
-     * @param <V>      the result type.
+     * @param <V>      the type the codec handles.
      * @return the created stream codec.
      */
     public <B extends FriendlyByteBuf, V> StreamCodec<B, V> attachingStreamCodec(A toAttach,
                                                                                  StreamCodec<? super B, V> toWrap) {
-        return new AttachingStreamCodec<>(this, toAttach, toWrap);
+        return AttachingStreamCodec.single(this, toAttach, toWrap);
     }
 
     /**
