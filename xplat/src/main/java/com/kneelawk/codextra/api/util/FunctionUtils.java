@@ -27,6 +27,8 @@ package com.kneelawk.codextra.api.util;
 
 import java.util.function.Function;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.serialization.DataResult;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
@@ -56,7 +58,7 @@ public final class FunctionUtils {
      * @param <O> the output type.
      * @return the converter function.
      */
-    public static <I, O> Function<I, O> nullFunc() {
+    public static <I, O> Function<I, @Nullable O> nullFunc() {
         return input -> null;
     }
 }

@@ -56,7 +56,10 @@ import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithMapCodec;
 import com.kneelawk.codextra.api.attach.stream.AttachingStreamCodec;
+import com.kneelawk.codextra.api.attach.stream.AttachmentDispatchStreamCodec;
+import com.kneelawk.codextra.api.attach.stream.ReadAttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.RetrievalStreamCodec;
+import com.kneelawk.codextra.api.attach.stream.RetrieveWithStreamCodec;
 import com.kneelawk.codextra.api.util.FunctionUtils;
 import com.kneelawk.codextra.impl.CodextraImpl;
 import com.kneelawk.codextra.impl.FieldNameHelper;
@@ -339,6 +342,23 @@ public class AttachmentKey<A> {
     }
 
     /**
+     * Creates a {@link StreamCodec} that decodes one value and then attaches it to the context when decoding the result value.
+     *
+     * @param attachmentCodec  the codec for decoding the attachment.
+     * @param wrappedCodec     the codec that is invoked with the attachment attached.
+     * @param attachmentGetter a function for getting the attachment when given the result type.
+     * @param <B>              the buffer type.
+     * @param <V>              the result type.
+     * @return the created stream codec.
+     */
+    public <B extends FriendlyByteBuf, V> StreamCodec<B, V> readAttachingStreamCodec(
+        StreamCodec<? super B, A> attachmentCodec,
+        StreamCodec<? super B, V> wrappedCodec,
+        Function<? super V, ? extends A> attachmentGetter) {
+        return new ReadAttachingStreamCodec<>(this, attachmentCodec, wrappedCodec, attachmentGetter);
+    }
+
+    /**
      * Creates a {@link RecordCodecBuilder} that acts as a field, but that only returns the retrieved value.
      *
      * @param retriever the function for retrieving the desired value form the attachment value.
@@ -468,6 +488,23 @@ public class AttachmentKey<A> {
     }
 
     /**
+     * Creates a {@link StreamCodec} that decodes a value and combines it with an attachment to create a result.
+     *
+     * @param withCodec the codec for the value to be combined with the attachment.
+     * @param retriever the function that combines the attachment with the decoded value.
+     * @param reverse   the function that gets the value to be encoded when given the attachment and the combined value.
+     * @param <B>       the buffer type.
+     * @param <O>       the type the attachment is combined with.
+     * @param <R>       the result type.
+     * @return the created stream codec.
+     */
+    public <B extends ByteBuf, O, R> StreamCodec<B, R> retrieveWithStreamCodec(StreamCodec<? super B, O> withCodec,
+                                                                               BiFunction<? super A, ? super O, ? extends R> retriever,
+                                                                               BiFunction<? super A, ? super R, ? extends O> reverse) {
+        return new RetrieveWithStreamCodec<>(this, withCodec, retriever, reverse);
+    }
+
+    /**
      * Creates a {@link Codec} that dispatches based on the retrieved attachment.
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
@@ -511,5 +548,18 @@ public class AttachmentKey<A> {
      */
     public <R> MapCodec<R> dispatchMapCodec(Function<? super A, ? extends MapCodec<? extends R>> dispatcher) {
         return dispatchMapCodecResult(dispatcher.andThen(DataResult::success));
+    }
+
+    /**
+     * Creates a {@link StreamCodec} that dispatches based on the retrieved attachment.
+     *
+     * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
+     * @param <B>        the buffer type.
+     * @param <R>        the result type.
+     * @return the created stream codec.
+     */
+    public <B extends ByteBuf, R> StreamCodec<B, R> dispatchStreamCodec(
+        Function<? super A, ? extends StreamCodec<? super B, ? extends R>> dispatcher) {
+        return new AttachmentDispatchStreamCodec<>(this, dispatcher);
     }
 }
