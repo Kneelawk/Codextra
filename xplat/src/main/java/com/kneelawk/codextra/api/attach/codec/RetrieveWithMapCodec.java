@@ -49,9 +49,8 @@ public class RetrieveWithMapCodec<A, O, R> extends MapCodec<R> {
 
     @Override
     public <T> DataResult<R> decode(DynamicOps<T> ops, MapLike<T> input) {
-        return key.getResult(ops)
-            .flatMap(attachment -> withCodec.decode(ops, input).flatMap(with -> retriever.apply(attachment, with))
-                .map(Function.identity()));
+        return key.getResult(ops).flatMap(attachment -> withCodec.decode(ops, input)
+            .flatMap(with -> retriever.apply(attachment, with).map(Function.identity())));
     }
 
     @Override

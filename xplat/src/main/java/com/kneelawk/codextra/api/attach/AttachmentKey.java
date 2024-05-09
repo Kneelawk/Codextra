@@ -57,6 +57,7 @@ import com.kneelawk.codextra.api.attach.codec.RetrieveWithCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithMapCodec;
 import com.kneelawk.codextra.api.attach.stream.AttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.RetrievalStreamCodec;
+import com.kneelawk.codextra.api.util.FunctionUtils;
 import com.kneelawk.codextra.impl.CodextraImpl;
 import com.kneelawk.codextra.impl.FieldNameHelper;
 
@@ -374,6 +375,9 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link StreamCodec} that retrieves the retrieved value.
+     * <p>
+     * This function does no encoding and does not need a valid value to encode. When creating a composite stream codec,
+     * you can use {@link FunctionUtils#nullFunc()}.
      *
      * @param retriever the function for retrieving the desired value from the attachment value.
      * @param <B>       the buffer type.
@@ -386,6 +390,9 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link StreamCodec} that retrieves the attached value.
+     * <p>
+     * This function does no encoding and does not need a valid value to encode. When creating a composite stream codec,
+     * you can use {@link FunctionUtils#nullFunc()}.
      *
      * @param <B> the buffer type.
      * @return the created stream codec.

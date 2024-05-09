@@ -8,6 +8,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
+import com.kneelawk.codextra.api.util.FunctionUtils;
 
 /**
  * A {@link Codec} that retrieves an attachment and determines which codec to use based on that attachment.
@@ -33,7 +34,7 @@ public class AttachmentDispatchCodec<A, R> implements Codec<R> {
 
     @Override
     public <T> DataResult<Pair<R, T>> decode(DynamicOps<T> ops, T input) {
-        return key.getResult(ops).flatMap(dispatcher.andThen(Function.identity()))
+        return key.getResult(ops).flatMap(dispatcher.andThen(FunctionUtils.dataIdentity()))
             .flatMap(codec -> codec.decode(ops, input).map(pair -> pair.mapFirst(Function.identity())));
     }
 
@@ -41,7 +42,7 @@ public class AttachmentDispatchCodec<A, R> implements Codec<R> {
     @Override
     public <T> DataResult<T> encode(R input, DynamicOps<T> ops, T prefix) {
         // intentional case, as dispatching makes sure the same codec is used for encoding as decoding
-        return key.getResult(ops).flatMap(dispatcher.andThen(Function.identity()))
+        return key.getResult(ops).flatMap(dispatcher.andThen(FunctionUtils.dataIdentity()))
             .flatMap(codec -> ((Codec<R>) codec).encode(input, ops, prefix));
     }
 

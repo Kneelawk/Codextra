@@ -10,6 +10,7 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
+import com.kneelawk.codextra.api.util.FunctionUtils;
 
 /**
  * {@link MapCodec} for retrieving an attachment.
@@ -39,7 +40,7 @@ public class RetrievalMapCodec<A, R> extends MapCodec<R> {
 
     @Override
     public <T> DataResult<R> decode(DynamicOps<T> ops, MapLike<T> input) {
-        return key.getResult(ops).flatMap(retriever.andThen(Function.identity())).map(Function.identity());
+        return key.getResult(ops).flatMap(retriever.andThen(FunctionUtils.dataIdentity())).map(Function.identity());
     }
 
     @Override

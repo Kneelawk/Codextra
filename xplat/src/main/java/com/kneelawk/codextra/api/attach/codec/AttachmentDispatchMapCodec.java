@@ -10,6 +10,7 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
+import com.kneelawk.codextra.api.util.FunctionUtils;
 
 /**
  * A {@link MapCodec} that retrieves an attachment and determines which codec to use based on that attachment.
@@ -43,7 +44,7 @@ public class AttachmentDispatchMapCodec<A, R> extends MapCodec<R> {
     @Override
     public <T> DataResult<R> decode(DynamicOps<T> ops, MapLike<T> input) {
         if (ops.compressMaps()) {
-            return key.getResult(ops).flatMap(dispatcher.andThen(Function.identity())).flatMap(codec -> {
+            return key.getResult(ops).flatMap(dispatcher.andThen(FunctionUtils.dataIdentity())).flatMap(codec -> {
                 T inputObj = input.get(COMPRESSED_KEY);
                 if (inputObj == null) {
                     return DataResult.error(() -> "Input does not have \"" + COMPRESSED_KEY + "\" entry: " + input);
@@ -52,7 +53,7 @@ public class AttachmentDispatchMapCodec<A, R> extends MapCodec<R> {
             });
         }
 
-        return key.getResult(ops).flatMap(dispatcher.andThen(Function.identity()))
+        return key.getResult(ops).flatMap(dispatcher.andThen(FunctionUtils.dataIdentity()))
             .flatMap(codec -> codec.decode(ops, input)).map(Function.identity());
     }
 
@@ -60,7 +61,7 @@ public class AttachmentDispatchMapCodec<A, R> extends MapCodec<R> {
     @Override
     public <T> RecordBuilder<T> encode(R input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
         DataResult<? extends MapCodec<? extends R>> dispatchedResult =
-            key.getResult(ops).flatMap(dispatcher.andThen(Function.identity()));
+            key.getResult(ops).flatMap(dispatcher.andThen(FunctionUtils.dataIdentity()));
         if (dispatchedResult.isError()) {
             return prefix.withErrorsFrom(dispatchedResult);
         }
