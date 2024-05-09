@@ -5,6 +5,9 @@ license = "MIT"
 [[mixins]]
 config = "codextra.mixins.json"
 
+[[mixins]]
+config = "codextra.neoforge.mixins.json"
+
 [[mods]]
 modId = "codextra"
 version = "${version}"

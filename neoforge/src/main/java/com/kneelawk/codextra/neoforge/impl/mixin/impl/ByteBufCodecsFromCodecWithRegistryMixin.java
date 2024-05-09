@@ -1,4 +1,4 @@
-package com.kneelawk.codextra.impl.mixin.impl;
+package com.kneelawk.codextra.neoforge.impl.mixin.impl;
 
 import java.util.function.Supplier;
 
@@ -22,7 +22,7 @@ import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
  * Transfers the AttachmentManager from the RegistryFriendlyByteBuf to the Codec's ops when calling
  * {@link net.minecraft.network.codec.ByteBufCodecs#fromCodecWithRegistries(Codec, Supplier)}
  */
-@Mixin(targets = "net.minecraft.network.codec.ByteBufCodecs$14")
+@Mixin(targets = "net.minecraft.network.codec.ByteBufCodecs$19")
 public class ByteBufCodecsFromCodecWithRegistryMixin {
     @WrapOperation(method = "decode(Lnet/minecraft/network/RegistryFriendlyByteBuf;)Ljava/lang/Object;", at = @At(
         value = "INVOKE",
