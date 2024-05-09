@@ -81,9 +81,28 @@ public final class Codextra {
      * @param <V>       the value type.
      * @return the created map codec.
      */
-    public static <K, V> MapCodec<V> mapKeyDispatchCodec(MapCodec<K> keyCodec,
-                                                         Function<? super V, ? extends DataResult<? extends K>> keyGetter,
-                                                         Function<? super K, ? extends DataResult<? extends MapCodec<? extends V>>> codec) {
+    public static <K, V> MapCodec<V> mapKeyDispatchCodecResult(MapCodec<K> keyCodec,
+                                                               Function<? super V, ? extends DataResult<? extends K>> keyGetter,
+                                                               Function<? super K, ? extends DataResult<? extends MapCodec<? extends V>>> codec) {
         return new MapKeyDispatchCodec<>(keyCodec, keyGetter, codec);
+    }
+
+    /**
+     * Creates a new {@link MapCodec} that dispatches based on the value decoded from a different map codec.
+     * <p>
+     * This is similar to the {@link com.mojang.serialization.codecs.KeyDispatchCodec} but allows for a map-codec key.
+     *
+     * @param keyCodec  the codec of the key type.
+     * @param keyGetter a function for retrieving the key when given a value.
+     * @param codec     a function for retrieving the value codec when given a key.
+     * @param <K>       the key type.
+     * @param <V>       the value type.
+     * @return the created map codec.
+     */
+    public static <K, V> MapCodec<V> mapKeyDispatchCodec(MapCodec<K> keyCodec,
+                                                         Function<? super V, ? extends K> keyGetter,
+                                                         Function<? super K, ? extends MapCodec<? extends V>> codec) {
+        return mapKeyDispatchCodecResult(keyCodec, keyGetter.andThen(DataResult::success),
+            codec.andThen(DataResult::success));
     }
 }
