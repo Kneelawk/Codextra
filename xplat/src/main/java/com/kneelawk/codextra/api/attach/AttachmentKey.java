@@ -362,6 +362,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link RecordCodecBuilder} that acts as a field, but that only returns the retrieved value.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param retriever the function for retrieving the desired value form the attachment value.
      * @param <O>       the object the field will be a part of.
@@ -375,6 +377,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link RecordCodecBuilder} that acts as a field, but that only returns the retrieved value.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param retriever the function for retrieving the desired value form the attachment value.
      * @param <O>       the object the field will be a part of.
@@ -387,6 +391,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link RecordCodecBuilder} that acts as a field, but that only returns the attached value.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param <O> the object type the field will be a part of.
      * @return the created {@link RecordCodecBuilder}.
@@ -400,6 +406,8 @@ public class AttachmentKey<A> {
      * <p>
      * This function does no encoding and does not need a valid value to encode. When creating a composite stream codec,
      * you can use {@link FunctionUtils#nullFunc()}.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param retriever the function for retrieving the desired value from the attachment value.
      * @param <B>       the buffer type.
@@ -415,6 +423,8 @@ public class AttachmentKey<A> {
      * <p>
      * This function does no encoding and does not need a valid value to encode. When creating a composite stream codec,
      * you can use {@link FunctionUtils#nullFunc()}.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param <B> the buffer type.
      * @return the created stream codec.
@@ -425,6 +435,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link Codec} that decodes a value and combines it with an attachment to create a result.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param withCodec the codec for the value to be combined with the attachment.
      * @param retriever the function that combines the attachment with the decoded value.
@@ -441,6 +453,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link MapCodec} that decodes a value and combines it with an attachment to create a result.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param withCodec the codec for the value to be combined with the attachment.
      * @param retriever the function that combines the attachment with the decoded value.
@@ -457,6 +471,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link Codec} that decodes a value and combines it with an attachment to create a result.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param withCodec the codec for the value to be combined with the attachment.
      * @param retriever the function that combines the attachment with the decoded value.
@@ -474,6 +490,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link MapCodec} that decodes a value and combines it with an attachment to create a result.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param withCodec the codec for the value to be combined with the attachment.
      * @param retriever the function that combines the attachment with the decoded value.
@@ -491,6 +509,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link StreamCodec} that decodes a value and combines it with an attachment to create a result.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param withCodec the codec for the value to be combined with the attachment.
      * @param retriever the function that combines the attachment with the decoded value.
@@ -508,6 +528,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link Codec} that dispatches based on the retrieved attachment.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
      * @param <R>        the codec type.
@@ -520,6 +542,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link Codec} that dispatches based on the retrieved attachment.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
      * @param <R>        the codec type.
@@ -531,6 +555,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link MapCodec} that dispatches based on the retrieved attachment.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
      * @param <R>        the map codec type.
@@ -543,6 +569,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link MapCodec} that dispatches based on the retrieved attachment.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
      * @param <R>        the map codec type.
@@ -554,6 +582,8 @@ public class AttachmentKey<A> {
 
     /**
      * Creates a {@link StreamCodec} that dispatches based on the retrieved attachment.
+     * <p>
+     * When attachment(s) are used in a codec, the required attachment(s) should be clearly noted in the codec's javadoc.
      *
      * @param dispatcher the function for retrieving the correct codec based on the retrieved attachment.
      * @param <B>        the buffer type.
