@@ -2,9 +2,9 @@ Changes:
 
 * Initial Codextra Release!
 * Added general purpose codecs:
-    * `ErrorHandlingMapCodec` - Catches decoding errors and allows you to log them.
-    * `KeyCheckingMapCodec` - Only decodes if a certain set of keys are present, otherwise returns `Optional.empty()`.
-    * `MapKeyDispatchCodec` - Like a `KeyDispatchCodec` but allows the type-key to be a map-codec instead of a regular
+    * `errorHandlingMapCodec` - Catches decoding errors and allows you to log them.
+    * `keyCheckingMapCodec` - Only decodes if a certain set of keys are present, otherwise returns `Optional.empty()`.
+    * `mapKeyDispatchCodec` - Like a `KeyDispatchCodec` but allows the type-key to be a map-codec instead of a regular
       codec.
 * Added Ops-Attachments with codecs:
   * `attachingCodec` - Attaches an attachment.
