@@ -39,13 +39,7 @@ public class ErrorHandlingMapCodec<R> extends MapCodec<Optional<R>> {
 
     @Override
     public <T> DataResult<Optional<R>> decode(DynamicOps<T> ops, MapLike<T> input) {
-        DataResult<R> result = wrapped.decode(ops, input);
-        if (result.isError()) {
-            errorLogger.accept(result.error().get().message());
-            return DataResult.success(Optional.empty());
-        }
-
-        return result.map(Optional::of);
+        return DataResult.success(wrapped.decode(ops, input).resultOrPartial(errorLogger));
     }
 
     @Override
