@@ -72,6 +72,11 @@ public class AttachmentManagerImpl implements AttachmentManager {
         return new ReferenceOpenHashSet<>(holders.keySet());
     }
 
+    @Override
+    public boolean isEmpty() {
+        return holders.isEmpty();
+    }
+
     private static class Holder<A> {
         final A value;
         Holder<A> prev = null;
