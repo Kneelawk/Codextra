@@ -9,28 +9,26 @@ import net.minecraft.network.codec.StreamCodec;
 import com.kneelawk.codextra.impl.CodextraImpl;
 
 public class ManagerGrabberStreamCodec<B, V> implements StreamCodec<B, V> {
-    public static final ThreadLocal<AttachmentManagerImpl> CURRENT_MANAGER = new ThreadLocal<>();
-
     private final StreamCodec<B, V> wrapped;
 
     public ManagerGrabberStreamCodec(StreamCodec<B, V> wrapped) {this.wrapped = wrapped;}
 
     @Override
-    public @NotNull V decode(B object) {
-        if (object instanceof ByteBuf buf) {
-            CURRENT_MANAGER.set(CodextraImpl.getAttachmentManager(buf));
+    public @NotNull V decode(@NotNull B stream) {
+        if (stream instanceof ByteBuf buf) {
+            CodextraImpl.putStreamManager(buf);
         }
-        V decoded = wrapped.decode(object);
-        CURRENT_MANAGER.remove();
+        V decoded = wrapped.decode(stream);
+        CodextraImpl.removeStreamManager();
         return decoded;
     }
 
     @Override
-    public void encode(B object, V object2) {
-        if (object instanceof ByteBuf buf) {
-            CURRENT_MANAGER.set(CodextraImpl.getAttachmentManager(buf));
+    public void encode(@NotNull B stream, @NotNull V input) {
+        if (stream instanceof ByteBuf buf) {
+            CodextraImpl.putStreamManager(buf);
         }
-        wrapped.encode(object, object2);
-        CURRENT_MANAGER.remove();
+        wrapped.encode(stream, input);
+        CodextraImpl.removeStreamManager();
     }
 }

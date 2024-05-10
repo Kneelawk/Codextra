@@ -25,6 +25,8 @@
 
 package com.kneelawk.codextra.impl;
 
+import java.util.function.Function;
+
 import org.jetbrains.annotations.Nullable;
 
 import io.netty.buffer.ByteBuf;
@@ -41,11 +43,42 @@ import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
 import com.kneelawk.codextra.impl.mixin.impl.DelegatingOpsAccessor;
 
 public class CodextraImpl {
-    private static final ThreadLocal<AttachmentManagerImpl> STREAM_MANAGER =
-        ThreadLocal.withInitial(AttachmentManagerImpl::new);
+    private static final ThreadLocal<AttachmentManagerImpl> STREAM_MANAGER = new ThreadLocal<>();
 
-    public static AttachmentManagerImpl streamManager() {
+    public static @Nullable AttachmentManagerImpl streamManager() {
         return STREAM_MANAGER.get();
+    }
+
+    public static void putStreamManager(ByteBuf buf) {
+        STREAM_MANAGER.set(getAttachmentManager(buf));
+    }
+
+    public static void removeStreamManager() {
+        STREAM_MANAGER.remove();
+    }
+
+    public static <T, R> R wrapWithStreamManager(DynamicOps<T> ops, Function<DynamicOps<T>, R> wrapped) {
+        AttachmentManagerImpl manager = STREAM_MANAGER.get();
+        AttachmentManagerImpl oldManager = null;
+        CodextraAttachmentManagerHolder holder = CodextraImpl.getHolder(ops);
+        if (manager != null) {
+            if (holder != null) {
+                oldManager = holder.codextra_getAttachmentManager();
+                holder.codextra_setAttachmentManager(manager);
+            } else {
+                AttachmentOps<T> newOps = new AttachmentOps<>(ops);
+                newOps.codextra_setAttachmentManager(manager);
+                ops = newOps;
+            }
+        }
+
+        try {
+            return wrapped.apply(ops);
+        } finally {
+            if (holder != null && oldManager != null) {
+                holder.codextra_setAttachmentManager(oldManager);
+            }
+        }
     }
 
     public static <A, T> DynamicOps<T> push(DynamicOps<T> ops, AttachmentKey<A> key, A value) {
@@ -65,7 +98,6 @@ public class CodextraImpl {
         CodextraAttachmentManagerHolder holder = (CodextraAttachmentManagerHolder) buf;
         AttachmentManagerImpl manager = holder.codextra_getAttachmentManager();
         manager.push(key, value);
-        STREAM_MANAGER.get().push(key, value);
     }
 
     public static <A> ByteBuf push(ByteBuf buf, AttachmentKey<A> key, A value) {
@@ -77,7 +109,6 @@ public class CodextraImpl {
 
         AttachmentManagerImpl manager = holder.codextra_getAttachmentManager();
         manager.push(key, value);
-        STREAM_MANAGER.get().push(key, value);
 
         return buf;
     }
@@ -91,12 +122,11 @@ public class CodextraImpl {
     }
 
     public static <A> @Nullable A pop(ByteBuf buf, AttachmentKey<A> key) {
-        A popped = STREAM_MANAGER.get().pop(key);
         AttachmentManagerImpl manager = getAttachmentManager(buf);
         if (manager != null) {
             return manager.pop(key);
         }
-        return popped;
+        return null;
     }
 
     public static @Nullable AttachmentManagerImpl getAttachmentManager(DynamicOps<?> ops) {
@@ -111,7 +141,7 @@ public class CodextraImpl {
         return holder.codextra_getAttachmentManager();
     }
 
-    public static @Nullable CodextraAttachmentManagerHolder getHolder(DynamicOps<?> ops) {
+    private static @Nullable CodextraAttachmentManagerHolder getHolder(DynamicOps<?> ops) {
         if (ops instanceof CodextraAttachmentManagerHolder holder) return holder;
 
         // check the delegates of delegating ops, just in case someone wrapped our AttachmentOps
@@ -124,7 +154,7 @@ public class CodextraImpl {
         return null;
     }
 
-    public static @Nullable CodextraAttachmentManagerHolder getHolder(ByteBuf buf) {
+    private static @Nullable CodextraAttachmentManagerHolder getHolder(ByteBuf buf) {
         if (buf instanceof CodextraAttachmentManagerHolder holder) return holder;
         return null;
     }
