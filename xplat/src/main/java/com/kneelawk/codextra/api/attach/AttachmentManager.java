@@ -76,4 +76,9 @@ public interface AttachmentManager {
      * @return the set of all attachments currently attached.
      */
     Set<AttachmentKey<?>> getAttachments();
+
+    /**
+     * {@return whether the attachment manager has any attachments.}
+     */
+    boolean isEmpty();
 }

@@ -41,6 +41,13 @@ import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
 import com.kneelawk.codextra.impl.mixin.impl.DelegatingOpsAccessor;
 
 public class CodextraImpl {
+    private static final ThreadLocal<AttachmentManagerImpl> STREAM_MANAGER =
+        ThreadLocal.withInitial(AttachmentManagerImpl::new);
+
+    public static AttachmentManagerImpl streamManager() {
+        return STREAM_MANAGER.get();
+    }
+
     public static <A, T> DynamicOps<T> push(DynamicOps<T> ops, AttachmentKey<A> key, A value) {
         CodextraAttachmentManagerHolder holder = getHolder(ops);
         if (holder == null) {
@@ -58,6 +65,7 @@ public class CodextraImpl {
         CodextraAttachmentManagerHolder holder = (CodextraAttachmentManagerHolder) buf;
         AttachmentManagerImpl manager = holder.codextra_getAttachmentManager();
         manager.push(key, value);
+        STREAM_MANAGER.get().push(key, value);
     }
 
     public static <A> ByteBuf push(ByteBuf buf, AttachmentKey<A> key, A value) {
@@ -69,6 +77,7 @@ public class CodextraImpl {
 
         AttachmentManagerImpl manager = holder.codextra_getAttachmentManager();
         manager.push(key, value);
+        STREAM_MANAGER.get().push(key, value);
 
         return buf;
     }
@@ -82,11 +91,12 @@ public class CodextraImpl {
     }
 
     public static <A> @Nullable A pop(ByteBuf buf, AttachmentKey<A> key) {
+        A popped = STREAM_MANAGER.get().pop(key);
         AttachmentManagerImpl manager = getAttachmentManager(buf);
         if (manager != null) {
             return manager.pop(key);
         }
-        return null;
+        return popped;
     }
 
     public static @Nullable AttachmentManagerImpl getAttachmentManager(DynamicOps<?> ops) {
@@ -101,7 +111,7 @@ public class CodextraImpl {
         return holder.codextra_getAttachmentManager();
     }
 
-    private static @Nullable CodextraAttachmentManagerHolder getHolder(DynamicOps<?> ops) {
+    public static @Nullable CodextraAttachmentManagerHolder getHolder(DynamicOps<?> ops) {
         if (ops instanceof CodextraAttachmentManagerHolder holder) return holder;
 
         // check the delegates of delegating ops, just in case someone wrapped our AttachmentOps
@@ -114,7 +124,7 @@ public class CodextraImpl {
         return null;
     }
 
-    private static @Nullable CodextraAttachmentManagerHolder getHolder(ByteBuf buf) {
+    public static @Nullable CodextraAttachmentManagerHolder getHolder(ByteBuf buf) {
         if (buf instanceof CodextraAttachmentManagerHolder holder) return holder;
         return null;
     }
