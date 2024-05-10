@@ -10,10 +10,10 @@ import com.mojang.serialization.DynamicOps;
 import com.kneelawk.codextra.impl.CodextraImpl;
 import com.kneelawk.codextra.impl.mixin.api.CodextraAttachmentManagerHolder;
 
-public class ManagerPutterCodec<R> implements Codec<R> {
+public class ManagerApplicationCodec<R> implements Codec<R> {
     private final Codec<R> wrapped;
 
-    public ManagerPutterCodec(Codec<R> wrapped) {this.wrapped = wrapped;}
+    public ManagerApplicationCodec(Codec<R> wrapped) {this.wrapped = wrapped;}
 
     @Override
     public <T> DataResult<Pair<R, T>> decode(DynamicOps<T> ops, T input) {

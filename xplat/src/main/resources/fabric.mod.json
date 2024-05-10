@@ -17,8 +17,7 @@
   "environment": "*",
   "entrypoints": { },
   "mixins": [
-    "codextra.mixins.json",
-    "codextra.fabric.mixins.json"
+    "codextra.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.15.10",
