@@ -220,7 +220,7 @@ public final class Codextra {
      * @param <A>     the codec type.
      * @return the adder result function.
      */
-    public static <A> Codec.ResultFunction<A> codecAddAPartial(A partial) {
+    public static <A> Codec.ResultFunction<A> codecAddPartial(A partial) {
         return codecAddPartial(() -> partial);
     }
 
