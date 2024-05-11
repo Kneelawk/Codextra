@@ -14,3 +14,5 @@ Changes:
     * `dispatchCodec` - Dispatches to different codecs depending on an attachment value.
 * Ops-Attachments can be transferred from a `StreamCodec` context to a DFU `Codec` context using Minecraft's
   built-in `ByteBufCodecs.fromCodec` and `ByteBufCodecs.fromCodecWithRegistries`.
+* Added `CodecOrUnit` type which can hold either a codec or a unit supplier. This is useful for when a unit-codec should
+  not write a field to its map at all.
