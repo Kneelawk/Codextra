@@ -212,4 +212,26 @@ public final class Codextra {
             }
         };
     }
+
+    /**
+     * Adds a partial to errors that don't have a partial value.
+     *
+     * @param partial the value that will become the partial.
+     * @param <A>     the codec type.
+     * @return the adder result function.
+     */
+    public static <A> Codec.ResultFunction<A> codecAddAPartial(A partial) {
+        return codecAddPartial(() -> partial);
+    }
+
+    /**
+     * Adds a partial to errors that don't have a partial value.
+     *
+     * @param partial the value that will become the partial.
+     * @param <A>     the codec type.
+     * @return the adder result function.
+     */
+    public static <A> MapCodec.ResultFunction<A> mapCodecAddPartial(A partial) {
+        return mapCodecAddPartial(() -> partial);
+    }
 }
