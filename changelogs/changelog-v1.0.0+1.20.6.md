@@ -7,8 +7,10 @@ Changes:
     * `mapKeyDispatchCodec` - Like a `KeyDispatchCodec` but allows the type-key to be a map-codec instead of a regular
       codec.
 * Added Ops-Attachments with codecs:
-  * `attachingCodec` - Attaches an attachment.
-  * `keyAttachingCodec` - Attaches a decoded value as an attachment.
-  * `retrieve` - Retrieves an attachment.
-  * `retrieveWithCodec` - Combines an attachment with a decoded value and returns that.
-  * `dispatchCodec` - Dispatches to different codecs depending on an attachment value.
+    * `attachingCodec` - Attaches an attachment.
+    * `keyAttachingCodec` - Attaches a decoded value as an attachment.
+    * `retrieve` - Retrieves an attachment.
+    * `retrieveWithCodec` - Combines an attachment with a decoded value and returns that.
+    * `dispatchCodec` - Dispatches to different codecs depending on an attachment value.
+* Ops-Attachments can be transferred from a `StreamCodec` context to a DFU `Codec` context using Minecraft's
+  built-in `ByteBufCodecs.fromCodec` and `ByteBufCodecs.fromCodecWithRegistries`.
