@@ -29,9 +29,15 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapLike;
+import com.mojang.serialization.RecordBuilder;
 
 import com.kneelawk.codextra.api.codec.ErrorHandlingMapCodec;
 import com.kneelawk.codextra.api.codec.KeyCheckingMapCodec;
@@ -104,5 +110,47 @@ public final class Codextra {
                                                          Function<? super K, ? extends MapCodec<? extends V>> codec) {
         return mapKeyDispatchCodecResult(keyCodec, keyGetter.andThen(DataResult::success),
             codec.andThen(DataResult::success));
+    }
+
+    /**
+     * Maps an error using the given function.
+     *
+     * @param map the function to map the error.
+     * @param <A> the codec type.
+     * @return a result function that maps errors.
+     */
+    public static <A> Codec.ResultFunction<A> codecMapError(UnaryOperator<String> map) {
+        return new Codec.ResultFunction<>() {
+            @Override
+            public <T> DataResult<Pair<A, T>> apply(DynamicOps<T> ops, T input, DataResult<Pair<A, T>> a) {
+                return a.mapError(map);
+            }
+
+            @Override
+            public <T> DataResult<T> coApply(DynamicOps<T> ops, A input, DataResult<T> t) {
+                return t.mapError(map);
+            }
+        };
+    }
+
+    /**
+     * Maps an error using the given function.
+     *
+     * @param map the function to map the error.
+     * @param <A> the map codec type.
+     * @return a result function that maps errors.
+     */
+    public static <A> MapCodec.ResultFunction<A> mapCodecMapError(UnaryOperator<String> map) {
+        return new MapCodec.ResultFunction<A>() {
+            @Override
+            public <T> DataResult<A> apply(DynamicOps<T> ops, MapLike<T> input, DataResult<A> a) {
+                return a.mapError(map);
+            }
+
+            @Override
+            public <T> RecordBuilder<T> coApply(DynamicOps<T> ops, A input, RecordBuilder<T> t) {
+                return t.mapError(map);
+            }
+        };
     }
 }
