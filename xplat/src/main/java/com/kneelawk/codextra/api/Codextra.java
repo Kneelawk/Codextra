@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.mojang.datafixers.util.Pair;
@@ -141,7 +142,7 @@ public final class Codextra {
      * @return a result function that maps errors.
      */
     public static <A> MapCodec.ResultFunction<A> mapCodecMapError(UnaryOperator<String> map) {
-        return new MapCodec.ResultFunction<A>() {
+        return new MapCodec.ResultFunction<>() {
             @Override
             public <T> DataResult<A> apply(DynamicOps<T> ops, MapLike<T> input, DataResult<A> a) {
                 return a.mapError(map);
@@ -150,6 +151,64 @@ public final class Codextra {
             @Override
             public <T> RecordBuilder<T> coApply(DynamicOps<T> ops, A input, RecordBuilder<T> t) {
                 return t.mapError(map);
+            }
+        };
+    }
+
+    /**
+     * Adds a partial to errors that don't have a partial value.
+     *
+     * @param partialSupplier supplies the value that will become the partial.
+     * @param <A>             the codec type.
+     * @return the adder result function.
+     */
+    public static <A> Codec.ResultFunction<A> codecAddPartial(Supplier<A> partialSupplier) {
+        return new Codec.ResultFunction<>() {
+            @Override
+            public <T> DataResult<Pair<A, T>> apply(DynamicOps<T> ops, T input, DataResult<Pair<A, T>> a) {
+                if (a.isError()) {
+                    Optional<Pair<A, T>> partial = a.resultOrPartial();
+                    if (partial.isPresent()) {
+                        return a;
+                    } else {
+                        return a.setPartial(Pair.of(partialSupplier.get(), input));
+                    }
+                }
+                return a;
+            }
+
+            @Override
+            public <T> DataResult<T> coApply(DynamicOps<T> ops, A input, DataResult<T> t) {
+                return t;
+            }
+        };
+    }
+
+    /**
+     * Adds a partial to errors that don't have a partial value.
+     *
+     * @param partialSupplier supplies the value that will become the partial.
+     * @param <A>             the codec type.
+     * @return the adder result function.
+     */
+    public static <A> MapCodec.ResultFunction<A> mapCodecAddPartial(Supplier<A> partialSupplier) {
+        return new MapCodec.ResultFunction<>() {
+            @Override
+            public <T> DataResult<A> apply(DynamicOps<T> ops, MapLike<T> input, DataResult<A> a) {
+                if (a.isError()) {
+                    Optional<A> partial = a.resultOrPartial();
+                    if (partial.isPresent()) {
+                        return a;
+                    } else {
+                        return a.setPartial(partialSupplier);
+                    }
+                }
+                return a;
+            }
+
+            @Override
+            public <T> RecordBuilder<T> coApply(DynamicOps<T> ops, A input, RecordBuilder<T> t) {
+                return t;
             }
         };
     }
