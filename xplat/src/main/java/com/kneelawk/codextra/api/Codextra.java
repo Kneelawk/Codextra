@@ -55,13 +55,38 @@ public final class Codextra {
     /**
      * Creates a new {@link MapCodec} that catches decoding errors and logs them.
      *
+     * @param <R>           the result type.
+     * @param wrapped       the codec to catch decoding errors from.
+     * @param errorLogger   the logger to log decoding errors to.
+     * @param succeedErrors whether errors should be converted intl successes or just partials.
+     * @return the created map codec.
+     */
+    public static <R> MapCodec<Optional<R>> errorHandlingMapCodec(MapCodec<R> wrapped, Consumer<String> errorLogger,
+                                                                  boolean succeedErrors) {
+        return new ErrorHandlingMapCodec<>(wrapped, errorLogger, succeedErrors);
+    }
+
+    /**
+     * Creates a new {@link MapCodec} that converts errors into successes but logs them.
+     *
      * @param wrapped     the codec to catch decoding errors from.
      * @param errorLogger the logger to log decoding errors to.
      * @param <R>         the result type.
      * @return the created map codec.
      */
-    public static <R> MapCodec<Optional<R>> errorHandlingMapCodec(MapCodec<R> wrapped, Consumer<String> errorLogger) {
-        return new ErrorHandlingMapCodec<>(wrapped, errorLogger);
+    public static <R> MapCodec<Optional<R>> errorLoggingMapCodec(MapCodec<R> wrapped, Consumer<String> errorLogger) {
+        return errorHandlingMapCodec(wrapped, errorLogger, true);
+    }
+
+    /**
+     * Creates a new {@link MapCodec} that converts errors into partials.
+     *
+     * @param wrapped the codec to catch decoding errors from.
+     * @param <R>     the result type.
+     * @return the created map codec.
+     */
+    public static <R> MapCodec<Optional<R>> errorPartiallingMapCodec(MapCodec<R> wrapped) {
+        return errorHandlingMapCodec(wrapped, err -> {}, false);
     }
 
     /**
