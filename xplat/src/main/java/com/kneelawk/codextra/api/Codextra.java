@@ -45,7 +45,7 @@ import com.kneelawk.codextra.api.codec.KeyCheckingMapCodec;
 import com.kneelawk.codextra.api.codec.MapKeyDispatchCodec;
 
 /**
- * Codextra utility root class.
+ * Codextra DFU codec utility root class.
  * <p>
  * For Ops-Attachments, see {@link com.kneelawk.codextra.api.attach.AttachmentKey}.
  */
