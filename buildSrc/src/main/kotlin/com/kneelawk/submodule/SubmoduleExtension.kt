@@ -32,10 +32,7 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.named
-import org.gradle.kotlin.dsl.project
-import org.gradle.kotlin.dsl.withType
+import org.gradle.kotlin.dsl.*
 import org.gradle.language.jvm.tasks.ProcessResources
 
 abstract class SubmoduleExtension(private val project: Project) {
@@ -149,6 +146,14 @@ abstract class SubmoduleExtension(private val project: Project) {
 
             named("javadoc", Javadoc::class.java).configure {
                 source(mainSource.map { it.allJava })
+            }
+        }
+    }
+
+    fun enableRemapping() {
+        project.tasks.named("jar", Jar::class).configure {
+            manifest {
+                attributes("Fabric-Loom-Remap" to true)
             }
         }
     }

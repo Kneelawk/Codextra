@@ -32,6 +32,7 @@ plugins {
 submodule {
     setRefmaps("codextra")
     applyFabricLoaderDependency()
+    enableRemapping()
 }
 
 java {
