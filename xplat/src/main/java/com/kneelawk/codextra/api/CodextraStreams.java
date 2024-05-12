@@ -32,6 +32,11 @@ public final class CodextraStreams {
             public void encode(B object, V object2) {
                 // do nothing here
             }
+
+            @Override
+            public String toString() {
+                return "[StreamCodecUnit " + supplier + "]";
+            }
         };
     }
 
@@ -50,7 +55,7 @@ public final class CodextraStreams {
     public static <B, K, V> StreamCodec<B, V> dispatch(StreamCodec<? super B, K> keyCodec,
                                                        Function<? super V, ? extends K> keyGetter,
                                                        Function<? super K, ? extends StreamCodec<? super B, ? extends V>> codecGetter) {
-        return new StreamCodec<B, V>() {
+        return new StreamCodec<>() {
             @Override
             public V decode(B buf) {
                 K key = keyCodec.decode(buf);
@@ -64,6 +69,11 @@ public final class CodextraStreams {
                 StreamCodec<? super B, ? extends V> valueCodec = codecGetter.apply(key);
                 keyCodec.encode(buf, key);
                 ((StreamCodec<? super B, V>) valueCodec).encode(buf, input);
+            }
+
+            @Override
+            public String toString() {
+                return "[StreamCodecDispatch " + keyCodec + " " + keyGetter + " " + codecGetter + "]";
             }
         };
     }

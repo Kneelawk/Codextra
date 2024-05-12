@@ -72,4 +72,9 @@ public class AttachmentDispatchStreamCodec<A, B extends ByteBuf, R> implements S
         StreamCodec<? super B, R> codec = (StreamCodec<? super B, R>) dispatcher.apply(attachment);
         codec.encode(object, object2);
     }
+
+    @Override
+    public String toString() {
+        return "AttachmentDispatchStreamCodec[" + key + " " + dispatcher + "]";
+    }
 }

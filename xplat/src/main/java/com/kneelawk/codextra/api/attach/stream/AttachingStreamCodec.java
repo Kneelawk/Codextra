@@ -101,4 +101,9 @@ public class AttachingStreamCodec<B extends FriendlyByteBuf, V> implements Strea
             key.pop(buf);
         }
     }
+
+    @Override
+    public String toString() {
+        return "AttachingStreamCodec[" + attachmentMap + " " + wrapped + "]";
+    }
 }

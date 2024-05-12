@@ -87,4 +87,9 @@ public class ReadAttachingStreamCodec<A, B extends FriendlyByteBuf, V> implement
             key.pop(object);
         }
     }
+
+    @Override
+    public String toString() {
+        return "ReadAttachingStreamCodec[" + key + " " + keyCodec + " " + wrappedCodec + " " + attachmentGetter + "]";
+    }
 }

@@ -63,4 +63,9 @@ public class RetrievalStreamCodec<A, B extends ByteBuf, V> implements StreamCode
     @Override
     public void encode(B object, V object2) {
     }
+
+    @Override
+    public String toString() {
+        return "RetrievalStreamCodec[" + key + " " + retriever + "]";
+    }
 }

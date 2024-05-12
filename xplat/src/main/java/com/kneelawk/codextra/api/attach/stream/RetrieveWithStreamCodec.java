@@ -77,4 +77,9 @@ public class RetrieveWithStreamCodec<A, B extends ByteBuf, O, R> implements Stre
         O with = reverse.apply(attachment, object2);
         withCodec.encode(object, with);
     }
+
+    @Override
+    public String toString() {
+        return "RetrieveWithStreamCodec[" + key + " " + withCodec + " " + retriever + " " + reverse + "]";
+    }
 }
