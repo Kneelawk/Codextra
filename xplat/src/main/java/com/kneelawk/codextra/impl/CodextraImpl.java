@@ -81,6 +81,12 @@ public class CodextraImpl {
         }
     }
 
+    public static void sync(FriendlyByteBuf from, FriendlyByteBuf to) {
+        CodextraAttachmentManagerHolder fromHolder = (CodextraAttachmentManagerHolder) from;
+        CodextraAttachmentManagerHolder toHolder = (CodextraAttachmentManagerHolder) to;
+        toHolder.codextra_setAttachmentManager(fromHolder.codextra_getAttachmentManager());
+    }
+
     public static <A, T> DynamicOps<T> push(DynamicOps<T> ops, AttachmentKey<A> key, A value) {
         CodextraAttachmentManagerHolder holder = getHolder(ops);
         if (holder == null) {

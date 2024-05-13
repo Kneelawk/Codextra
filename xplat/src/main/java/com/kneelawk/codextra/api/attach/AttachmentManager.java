@@ -8,6 +8,8 @@ import io.netty.buffer.ByteBuf;
 
 import com.mojang.serialization.DynamicOps;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.kneelawk.codextra.impl.CodextraImpl;
 
 /**
@@ -38,6 +40,19 @@ public interface AttachmentManager {
      */
     static @Nullable AttachmentManager getAttachmentManager(ByteBuf buf) {
         return CodextraImpl.getAttachmentManager(buf);
+    }
+
+    /**
+     * Syncs the attachments from one buffer to another buffer.
+     * <p>
+     * <b>The {@code to} buffer's existing attachments, if any, will be overridden by the attachments from the
+     * {@code from} buffer.</b>
+     *
+     * @param from the buffer to sync the attachments from.
+     * @param to   the buffer to sync the attachments to.
+     */
+    static void sync(FriendlyByteBuf from, FriendlyByteBuf to) {
+        CodextraImpl.sync(from, to);
     }
 
     /**
