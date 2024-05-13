@@ -9,6 +9,8 @@ Changes:
 * Added Ops-Attachments with codecs:
     * `attachingCodec` - Attaches an attachment.
     * `keyAttachingCodec` - Attaches a decoded value as an attachment.
+    * `mutKeyAttachingCodec` - Attaches a decoded value as an attachment, but allows that attachment to be mutated while
+      encoding.
     * `retrieve` - Retrieves an attachment.
     * `retrieveWithCodec` - Combines an attachment with a decoded value and returns that.
     * `dispatchCodec` - Dispatches to different codecs depending on an attachment value.

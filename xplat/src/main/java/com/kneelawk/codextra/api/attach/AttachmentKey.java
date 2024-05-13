@@ -53,6 +53,7 @@ import com.kneelawk.codextra.api.attach.codec.AttachingMapCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchMapCodec;
 import com.kneelawk.codextra.api.attach.codec.KeyAttachingCodec;
+import com.kneelawk.codextra.api.attach.codec.MutKeyAttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithMapCodec;
@@ -402,6 +403,36 @@ public class AttachmentKey<A> {
         StreamCodec<? super B, V> wrappedCodec,
         Function<? super V, ? extends A> attachmentGetter) {
         return new ReadAttachingStreamCodec<>(this, attachmentCodec, wrappedCodec, attachmentGetter);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that decodes one value and attaches it to the context when decoding the other value, but that
+     * also allows mutation of the attachment while encoding, making sure those changes show up in the decoded attachment.
+     *
+     * @param keyCodec         the codec that decodes the attachment.
+     * @param wrappedCodec     the codec that is invoked with the attachment attached.
+     * @param attachmentGetter a function for getting the attachment when given the result type.
+     * @param <R>              the result type.
+     * @return the created map codec.
+     */
+    public <R> MapCodec<R> mutKeyAttachingCodecResult(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
+                                                      Function<? super R, ? extends DataResult<? extends A>> attachmentGetter) {
+        return new MutKeyAttachingCodec<>(this, keyCodec, wrappedCodec, attachmentGetter);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that decodes one value and attaches it to the context when decoding the other value, but that
+     * also allows mutation of the attachment while encoding, making sure those changes show up in the decoded attachment.
+     *
+     * @param keyCodec         the codec that decodes the attachment.
+     * @param wrappedCodec     the codec that is invoked with the attachment attached.
+     * @param attachmentGetter a function for getting the attachment when given the result type.
+     * @param <R>              the result type.
+     * @return the created map codec.
+     */
+    public <R> MapCodec<R> mutKeyAttachingCodec(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
+                                                Function<? super R, ? extends A> attachmentGetter) {
+        return new MutKeyAttachingCodec<>(this, keyCodec, wrappedCodec, attachmentGetter.andThen(DataResult::success));
     }
 
     /**
