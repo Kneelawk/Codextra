@@ -58,6 +58,8 @@ import com.kneelawk.codextra.api.attach.codec.RetrieveWithCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrieveWithMapCodec;
 import com.kneelawk.codextra.api.attach.stream.AttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.AttachmentDispatchStreamCodec;
+import com.kneelawk.codextra.api.attach.stream.ChildBufferFactory;
+import com.kneelawk.codextra.api.attach.stream.MutReadAttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.ReadAttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.RetrievalStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.RetrieveWithStreamCodec;
@@ -400,6 +402,32 @@ public class AttachmentKey<A> {
         StreamCodec<? super B, V> wrappedCodec,
         Function<? super V, ? extends A> attachmentGetter) {
         return new ReadAttachingStreamCodec<>(this, attachmentCodec, wrappedCodec, attachmentGetter);
+    }
+
+    /**
+     * Creates a {@link StreamCodec} that decodes one value and then attaches it to the context when decoding the result
+     * value, but that also allows mutation of the attachment while encoding, making sure those changes show up in the
+     * decoded attachment.
+     * <p>
+     * This is good for things like palettes.
+     *
+     * @param attachmentCodec   the attachment's codec.
+     * @param wrappedBufferCtor for creating the buffer used by the wrapped codec, as writing wrapped codec values to
+     *                          the main buffer must be delayed.
+     * @param wrappedCodec      the codec that will be invoked with the attachment attached.
+     * @param attachmentGetter  a function for getting the attachment when given the result type. This may simply create
+     *                          a new attachment if the attachment is intended to get all its value from being mutated
+     *                          while encoding.
+     * @param <B1>              the buffer type of the returned stream codec.
+     * @param <B2>              the buffer type of the wrapped stream codec.
+     * @param <V>               the result type.
+     * @return the created stream codec.
+     */
+    public <B1 extends FriendlyByteBuf, B2 extends FriendlyByteBuf, V> StreamCodec<B1, V> mutReadAttachingStreamCodec(
+        StreamCodec<? super B1, A> attachmentCodec, ChildBufferFactory<? super B1, B2> wrappedBufferCtor,
+        StreamCodec<? super B2, V> wrappedCodec, Function<? super V, ? extends A> attachmentGetter) {
+        return new MutReadAttachingStreamCodec<>(this, attachmentCodec, wrappedBufferCtor, wrappedCodec,
+            attachmentGetter);
     }
 
     /**
