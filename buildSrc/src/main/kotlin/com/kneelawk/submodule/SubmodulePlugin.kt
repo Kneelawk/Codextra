@@ -143,9 +143,9 @@ class SubmodulePlugin : Plugin<Project> {
                 exclude("com/kneelawk/codextra/impl")
                 exclude("com/kneelawk/codextra/**/impl")
 
-                val jetbrainsAnnotationsVersion = project.getProperty<String>("jetbrains_annotations_version")
+//                val jetbrainsAnnotationsVersion = project.getProperty<String>("jetbrains_annotations_version")
                 (options as? StandardJavadocDocletOptions)?.links = listOf(
-                    "https://javadoc.io/doc/org.jetbrains/annotations/${jetbrainsAnnotationsVersion}/"
+//                    "https://javadoc.io/doc/org.jetbrains/annotations/${jetbrainsAnnotationsVersion}/"
                 )
 
                 options.optionFiles(project.rootProject.file("javadoc-options.txt"))
