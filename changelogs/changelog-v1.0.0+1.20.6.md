@@ -13,6 +13,7 @@ Changes:
       encoding.
     * `retrieve` - Retrieves an attachment.
     * `retrieveWithCodec` - Combines an attachment with a decoded value and returns that.
+    * `ifPresentCodec` - delegates to one codec if an attachment is present and another if the attachment is absent.
     * `dispatchCodec` - Dispatches to different codecs depending on an attachment value.
     * `dispatchIfPresentCodec` - Dispatches to different codecs depending on an attachment value or if the attachment is
       absent.

@@ -52,8 +52,10 @@ import com.kneelawk.codextra.api.attach.codec.AttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachingMapCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchMapCodec;
+import com.kneelawk.codextra.api.attach.codec.IfPresentCodec;
 import com.kneelawk.codextra.api.attach.codec.IfPresentDispatchCodec;
 import com.kneelawk.codextra.api.attach.codec.IfPresentDispatchMapCodec;
+import com.kneelawk.codextra.api.attach.codec.IfPresentMapCodec;
 import com.kneelawk.codextra.api.attach.codec.KeyAttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.MutKeyAttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
@@ -63,6 +65,7 @@ import com.kneelawk.codextra.api.attach.stream.AttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.AttachmentDispatchStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.ChildBufferFactory;
 import com.kneelawk.codextra.api.attach.stream.IfPresentDispatchStreamCodec;
+import com.kneelawk.codextra.api.attach.stream.IfPresentStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.MutReadAttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.ReadAttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.RetrievalStreamCodec;
@@ -627,6 +630,47 @@ public class AttachmentKey<A> {
                                                                                BiFunction<? super A, ? super O, ? extends R> retriever,
                                                                                BiFunction<? super A, ? super R, ? extends O> reverse) {
         return new RetrieveWithStreamCodec<>(this, withCodec, retriever, reverse);
+    }
+
+    /**
+     * Creates a {@link Codec} that delegates to one codec if an attachment is present and another if the attachment
+     * is absent.
+     *
+     * @param ifPresent the codec to use if the attachment is present.
+     * @param ifAbsent  the codec to use if the attachment is absent.
+     * @param <R>       the result type.
+     * @return the created codec.
+     */
+    public <R> Codec<R> ifPresentCodec(Codec<R> ifPresent, Codec<R> ifAbsent) {
+        return new IfPresentCodec<>(this, ifPresent, ifAbsent);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that delegates to one codec if an attachment is present and another if the attachment
+     * is absent.
+     *
+     * @param ifPresent the codec to use if the attachment is present.
+     * @param ifAbsent  the codec to use if the attachment is absent.
+     * @param <R>       the result type.
+     * @return the created map codec.
+     */
+    public <R> MapCodec<R> ifPresentMapCodec(MapCodec<R> ifPresent, MapCodec<R> ifAbsent) {
+        return new IfPresentMapCodec<>(this, ifPresent, ifAbsent);
+    }
+
+    /**
+     * Creates a {@link StreamCodec} that delegates to one codec if an attachment is present and another if the attachment
+     * is absent.
+     *
+     * @param ifPresent the codec to use if the attachment is present.
+     * @param ifAbsent  the codec to use if the attachment is absent.
+     * @param <B>       the buffer type.
+     * @param <V>       the result type.
+     * @return the created stream codec.
+     */
+    public <B extends ByteBuf, V> StreamCodec<B, V> ifPresentStreamCodec(StreamCodec<? super B, V> ifPresent,
+                                                                         StreamCodec<? super B, V> ifAbsent) {
+        return new IfPresentStreamCodec<>(this, ifPresent, ifAbsent);
     }
 
     /**
