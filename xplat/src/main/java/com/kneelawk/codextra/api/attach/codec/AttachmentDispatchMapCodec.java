@@ -69,7 +69,7 @@ public class AttachmentDispatchMapCodec<A, R> extends MapCodec<R> {
         // intentional cast, as dispatching makes sure the same codec is used for encoding as decoding
         MapCodec<R> dispatched = (MapCodec<R>) dispatchedResult.result().get();
         if (ops.compressMaps()) {
-            return prefix.add(COMPRESSED_KEY, dispatched.codec().encodeStart(ops, input));
+            return prefix.add(COMPRESSED_KEY, dispatched.encoder().encodeStart(ops, input));
         }
 
         return dispatched.encode(input, ops, prefix);

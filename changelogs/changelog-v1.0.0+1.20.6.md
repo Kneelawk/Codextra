@@ -14,6 +14,8 @@ Changes:
     * `retrieve` - Retrieves an attachment.
     * `retrieveWithCodec` - Combines an attachment with a decoded value and returns that.
     * `dispatchCodec` - Dispatches to different codecs depending on an attachment value.
+    * `dispatchIfPresentCodec` - Dispatches to different codecs depending on an attachment value or if the attachment is
+      absent.
 * Ops-Attachments can be transferred from a `StreamCodec` context to a DFU `Codec` context using Minecraft's
   built-in `ByteBufCodecs.fromCodec` and `ByteBufCodecs.fromCodecWithRegistries`.
 * Added `CodecOrUnit` type which can hold either a codec or a unit supplier. This is useful for when a unit-codec should

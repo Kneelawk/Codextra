@@ -39,11 +39,11 @@ import com.kneelawk.codextra.api.attach.AttachmentKey;
  *
  * @param <A> the type of attachment this retrieves.
  * @param <B> the buffer type.
- * @param <R> th type this is a codec for.
+ * @param <V> th type this is a codec for.
  */
-public class AttachmentDispatchStreamCodec<A, B extends ByteBuf, R> implements StreamCodec<B, R> {
+public class AttachmentDispatchStreamCodec<A, B extends ByteBuf, V> implements StreamCodec<B, V> {
     private final AttachmentKey<A> key;
-    private final Function<? super A, ? extends StreamCodec<? super B, ? extends R>> dispatcher;
+    private final Function<? super A, ? extends StreamCodec<? super B, ? extends V>> dispatcher;
 
     /**
      * Creates a new {@link AttachmentDispatchStreamCodec}.
@@ -52,24 +52,24 @@ public class AttachmentDispatchStreamCodec<A, B extends ByteBuf, R> implements S
      * @param dispatcher the function to get the codec based on the retrieved attachment.
      */
     public AttachmentDispatchStreamCodec(AttachmentKey<A> key,
-                                         Function<? super A, ? extends StreamCodec<? super B, ? extends R>> dispatcher) {
+                                         Function<? super A, ? extends StreamCodec<? super B, ? extends V>> dispatcher) {
         this.key = key;
         this.dispatcher = dispatcher;
     }
 
     @Override
-    public R decode(B object) {
+    public V decode(B object) {
         A attachment = key.getOrThrow(object);
-        StreamCodec<? super B, ? extends R> codec = dispatcher.apply(attachment);
+        StreamCodec<? super B, ? extends V> codec = dispatcher.apply(attachment);
         return codec.decode(object);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void encode(B object, R object2) {
+    public void encode(B object, V object2) {
         A attachment = key.getOrThrow(object);
         // intentional cast, as dispatching makes sure the same codec is used for encoding as decoding
-        StreamCodec<? super B, R> codec = (StreamCodec<? super B, R>) dispatcher.apply(attachment);
+        StreamCodec<? super B, V> codec = (StreamCodec<? super B, V>) dispatcher.apply(attachment);
         codec.encode(object, object2);
     }
 

@@ -52,6 +52,8 @@ import com.kneelawk.codextra.api.attach.codec.AttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachingMapCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchCodec;
 import com.kneelawk.codextra.api.attach.codec.AttachmentDispatchMapCodec;
+import com.kneelawk.codextra.api.attach.codec.IfPresentDispatchCodec;
+import com.kneelawk.codextra.api.attach.codec.IfPresentDispatchMapCodec;
 import com.kneelawk.codextra.api.attach.codec.KeyAttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.MutKeyAttachingCodec;
 import com.kneelawk.codextra.api.attach.codec.RetrievalMapCodec;
@@ -60,6 +62,7 @@ import com.kneelawk.codextra.api.attach.codec.RetrieveWithMapCodec;
 import com.kneelawk.codextra.api.attach.stream.AttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.AttachmentDispatchStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.ChildBufferFactory;
+import com.kneelawk.codextra.api.attach.stream.IfPresentDispatchStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.MutReadAttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.ReadAttachingStreamCodec;
 import com.kneelawk.codextra.api.attach.stream.RetrievalStreamCodec;
@@ -100,8 +103,8 @@ public class AttachmentKey<A> {
      */
     public static <A> AttachmentKey<A> ofStaticFieldName() {
         Class<?> caller = STACK_WALKER.getCallerClass();
-        String name = caller.getName() + "." +
-            FieldNameHelper.getCurrentlyInitializingFieldName(caller, AttachmentKey.class);
+        String name =
+            caller.getName() + "." + FieldNameHelper.getCurrentlyInitializingFieldName(caller, AttachmentKey.class);
         return new AttachmentKey<>(name);
     }
 
@@ -399,8 +402,7 @@ public class AttachmentKey<A> {
      * @return the created stream codec.
      */
     public <B extends FriendlyByteBuf, V> StreamCodec<B, V> readAttachingStreamCodec(
-        StreamCodec<? super B, A> attachmentCodec,
-        StreamCodec<? super B, V> wrappedCodec,
+        StreamCodec<? super B, A> attachmentCodec, StreamCodec<? super B, V> wrappedCodec,
         Function<? super V, ? extends A> attachmentGetter) {
         return new ReadAttachingStreamCodec<>(this, attachmentCodec, wrappedCodec, attachmentGetter);
     }
@@ -694,5 +696,77 @@ public class AttachmentKey<A> {
     public <B extends ByteBuf, R> StreamCodec<B, R> dispatchStreamCodec(
         Function<? super A, ? extends StreamCodec<? super B, ? extends R>> dispatcher) {
         return new AttachmentDispatchStreamCodec<>(this, dispatcher);
+    }
+
+    /**
+     * Creates a {@link Codec} that retrieves an attachment if present and uses it to determine which codec to use
+     * or uses another codec if the attachment is absent.
+     *
+     * @param dispatcher the function to get the codec based on the retrieved attachment.
+     * @param ifAbsent   the codec used if the attachment is not present.
+     * @param <R>        the result type.
+     * @return the created codec.
+     */
+    public <R> Codec<R> dispatchIfPresentCodecResult(
+        Function<? super A, ? extends DataResult<? extends Codec<? extends R>>> dispatcher, Codec<R> ifAbsent) {
+        return new IfPresentDispatchCodec<>(this, dispatcher, ifAbsent);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that retrieves an attachment if present and uses it to determine which codec to use
+     * or uses another codec if the attachment is absent.
+     *
+     * @param dispatcher the function to get the codec based on the retrieved attachment.
+     * @param ifAbsent   the codec used if the attachment is not present.
+     * @param <R>        the result type.
+     * @return the created map codec.
+     */
+    public <R> MapCodec<R> dispatchIfPresentMapCodecResult(
+        Function<? super A, ? extends DataResult<? extends MapCodec<? extends R>>> dispatcher, MapCodec<R> ifAbsent) {
+        return new IfPresentDispatchMapCodec<>(this, dispatcher, ifAbsent);
+    }
+
+    /**
+     * Creates a {@link Codec} that retrieves an attachment if present and uses it to determine which codec to use
+     * or uses another codec if the attachment is absent.
+     *
+     * @param dispatcher the function to get the codec based on the retrieved attachment.
+     * @param ifAbsent   the codec used if the attachment is not present.
+     * @param <R>        the result type.
+     * @return the created codec.
+     */
+    public <R> Codec<R> dispatchIfPresentCodec(Function<? super A, ? extends Codec<? extends R>> dispatcher,
+                                               Codec<R> ifAbsent) {
+        return new IfPresentDispatchCodec<>(this, dispatcher.andThen(DataResult::success), ifAbsent);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that retrieves an attachment if present and uses it to determine which codec to use
+     * or uses another codec if the attachment is absent.
+     *
+     * @param dispatcher the function to get the codec based on the retrieved attachment.
+     * @param ifAbsent   the codec used if the attachment is not present.
+     * @param <R>        the result type.
+     * @return the created map codec.
+     */
+    public <R> MapCodec<R> dispatchIfPresentMapCodec(Function<? super A, ? extends MapCodec<? extends R>> dispatcher,
+                                                     MapCodec<R> ifAbsent) {
+        return new IfPresentDispatchMapCodec<>(this, dispatcher.andThen(DataResult::success), ifAbsent);
+    }
+
+    /**
+     * Creates a {@link StreamCodec} that retrieves an attachment if present and uses it to determine which codec to use
+     * or uses another codec if the attachment is absent.
+     *
+     * @param dispatcher the function to get the codec based on the retrieved attachment.
+     * @param ifAbsent   the codec used if the attachment is not present.\
+     * @param <B>        the buffer type.
+     * @param <V>        the result type.
+     * @return the created stream codec.
+     */
+    public <B extends ByteBuf, V> StreamCodec<B, V> dispatchIfPresentStreamCodec(
+        Function<? super A, ? extends StreamCodec<? super B, ? extends V>> dispatcher,
+        StreamCodec<? super B, V> ifAbsent) {
+        return new IfPresentDispatchStreamCodec<>(this, dispatcher, ifAbsent);
     }
 }
