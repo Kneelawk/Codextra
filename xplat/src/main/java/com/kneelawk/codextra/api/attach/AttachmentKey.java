@@ -352,6 +352,19 @@ public class AttachmentKey<A> {
     }
 
     /**
+     * Creates a {@link StreamCodec.CodecOperation} that attaches the given values to the codec context.
+     *
+     * @param attachmentMap the map of attachment to attach.
+     * @param <B>           the buffer type.
+     * @param <V>           the type the codec handles.
+     * @return the created stream codec.
+     */
+    public static <B extends FriendlyByteBuf, V> StreamCodec.CodecOperation<B, V, V> attachingStreamOp(
+        Map<AttachmentKey<?>, ?> attachmentMap) {
+        return streamCodec -> attachingStreamCodec(attachmentMap, streamCodec);
+    }
+
+    /**
      * Creates a {@link StreamCodec} that attaches the given value to the codec context when decoding/encoding the
      * wrapped codec.
      *
@@ -364,6 +377,18 @@ public class AttachmentKey<A> {
     public <B extends FriendlyByteBuf, V> StreamCodec<B, V> attachingStreamCodec(A toAttach,
                                                                                  StreamCodec<? super B, V> toWrap) {
         return AttachingStreamCodec.single(this, toAttach, toWrap);
+    }
+
+    /**
+     * Creates a {@link StreamCodec.CodecOperation} that attaches the given value to the codec context.
+     *
+     * @param toAttach the value to attach.
+     * @param <B>      the buffer type.
+     * @param <V>      the value type.
+     * @return the attaching codec operation.
+     */
+    public <B extends FriendlyByteBuf, V> StreamCodec.CodecOperation<B, V, V> attachingStreamOp(A toAttach) {
+        return streamCodec -> attachingStreamCodec(toAttach, streamCodec);
     }
 
     /**
@@ -408,6 +433,20 @@ public class AttachmentKey<A> {
         StreamCodec<? super B, A> attachmentCodec, StreamCodec<? super B, V> wrappedCodec,
         Function<? super V, ? extends A> attachmentGetter) {
         return new ReadAttachingStreamCodec<>(this, attachmentCodec, wrappedCodec, attachmentGetter);
+    }
+
+    /**
+     * Creates a {@link StreamCodec.CodecOperation} that decodes one value then attaches it to the context when decoding the result value.
+     *
+     * @param attachmentCodec  the codec for decoding the attachment.
+     * @param attachmentGetter a function for getting the attachment when given the result type.
+     * @param <B>              the buffer type.
+     * @param <V>              the result type.
+     * @return the created codec operation.
+     */
+    public <B extends FriendlyByteBuf, V> StreamCodec.CodecOperation<B, V, V> readAttachingStreamOp(
+        StreamCodec<? super B, A> attachmentCodec, Function<? super V, ? extends A> attachmentGetter) {
+        return streamCodec -> readAttachingStreamCodec(attachmentCodec, streamCodec, attachmentGetter);
     }
 
     /**
