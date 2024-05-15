@@ -392,6 +392,25 @@ public class AttachmentKey<A> {
     }
 
     /**
+     * Creates a {@link MapCodec} that decodes one value and uses it to create attachments to attach to the context
+     * when decoding the other value.
+     *
+     * @param keyCodec          the codec for the key to be turned into attachments.
+     * @param attachmentsGetter the function to turn the key into attachments.
+     * @param wrappedCodec      the codec to pass the attachments to.
+     * @param keyGetter         the function to get the key back from the result type.
+     * @param <K>               the key type.
+     * @param <R>               the result type.
+     * @return the created map codec.
+     */
+    public static <K, R> MapCodec<R> keyAttachingCodecResult(MapCodec<K> keyCodec,
+                                                             Function<? super K, ? extends DataResult<? extends Map<AttachmentKey<?>, ?>>> attachmentsGetter,
+                                                             MapCodec<R> wrappedCodec,
+                                                             Function<? super R, ? extends DataResult<? extends K>> keyGetter) {
+        return new KeyAttachingCodec<>(keyCodec, attachmentsGetter, wrappedCodec, keyGetter);
+    }
+
+    /**
      * Creates a {@link MapCodec} that decodes one value and attaches it to the context when decoding the result value.
      *
      * @param keyCodec         the codec that decodes the attachment.
@@ -402,7 +421,27 @@ public class AttachmentKey<A> {
      */
     public <R> MapCodec<R> keyAttachingCodecResult(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
                                                    Function<? super R, ? extends DataResult<? extends A>> attachmentGetter) {
-        return new KeyAttachingCodec<>(this, keyCodec, wrappedCodec, attachmentGetter);
+        return KeyAttachingCodec.single(this, keyCodec, wrappedCodec, attachmentGetter);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that decodes one value and uses it to create attachments to attach to the context
+     * when decoding the other value.
+     *
+     * @param keyCodec          the codec for the key to be turned into attachments.
+     * @param attachmentsGetter the function to turn the key into attachments.
+     * @param wrappedCodec      the codec to pass the attachments to.
+     * @param keyGetter         the function to get the key back from the result type.
+     * @param <K>               the key type.
+     * @param <R>               the result type.
+     * @return the created map codec.
+     */
+    public static <K, R> MapCodec<R> keyAttachingCodec(MapCodec<K> keyCodec,
+                                                       Function<? super K, ? extends Map<AttachmentKey<?>, ?>> attachmentsGetter,
+                                                       MapCodec<R> wrappedCodec,
+                                                       Function<? super R, ? extends K> keyGetter) {
+        return keyAttachingCodecResult(keyCodec, attachmentsGetter.andThen(DataResult::success), wrappedCodec,
+            keyGetter.andThen(DataResult::success));
     }
 
     /**
@@ -420,6 +459,25 @@ public class AttachmentKey<A> {
     }
 
     /**
+     * Creates a {@link StreamCodec} that decodes one value and uses it to create attachments to attach to the context
+     * when decoding the result type.
+     *
+     * @param keyCodec          the codec for the key to be turned into attachments.
+     * @param attachmentsGetter the function to turn the key into attachments.
+     * @param wrappedCodec      the codec to pass the attachments to.
+     * @param keyGetter         the function to get the key back from the result type.
+     * @param <B>               the buffer type.
+     * @param <K>               the key type.
+     * @param <V>               the result type.
+     * @return the created stream codec.
+     */
+    public static <B extends FriendlyByteBuf, K, V> StreamCodec<B, V> readAttachingStreamCodec(
+        StreamCodec<? super B, K> keyCodec, Function<? super K, ? extends Map<AttachmentKey<?>, ?>> attachmentsGetter,
+        StreamCodec<? super B, V> wrappedCodec, Function<? super V, ? extends K> keyGetter) {
+        return new ReadAttachingStreamCodec<>(keyCodec, attachmentsGetter, wrappedCodec, keyGetter);
+    }
+
+    /**
      * Creates a {@link StreamCodec} that decodes one value and then attaches it to the context when decoding the result value.
      *
      * @param attachmentCodec  the codec for decoding the attachment.
@@ -432,11 +490,30 @@ public class AttachmentKey<A> {
     public <B extends FriendlyByteBuf, V> StreamCodec<B, V> readAttachingStreamCodec(
         StreamCodec<? super B, A> attachmentCodec, StreamCodec<? super B, V> wrappedCodec,
         Function<? super V, ? extends A> attachmentGetter) {
-        return new ReadAttachingStreamCodec<>(this, attachmentCodec, wrappedCodec, attachmentGetter);
+        return ReadAttachingStreamCodec.single(this, attachmentCodec, wrappedCodec, attachmentGetter);
     }
 
     /**
-     * Creates a {@link StreamCodec.CodecOperation} that decodes one value then attaches it to the context when decoding the result value.
+     * Creates a {@link StreamCodec.CodecOperation} that decodes one value and uses it to create attachments to attach
+     * to the context when decoding the result value.
+     *
+     * @param keyCodec          the codec for the key to be turned into attachments.
+     * @param attachmentsGetter the function to turn the key into attachments.
+     * @param keyGetter         the function to get the key back from the result type.
+     * @param <B>               the buffer type.
+     * @param <K>               the key type.
+     * @param <V>               the result type.
+     * @return the created stream codec.
+     */
+    public static <B extends FriendlyByteBuf, K, V> StreamCodec.CodecOperation<B, V, V> readAttachingStreamOp(
+        StreamCodec<? super B, K> keyCodec, Function<? super K, ? extends Map<AttachmentKey<?>, ?>> attachmentsGetter,
+        Function<? super V, ? extends K> keyGetter) {
+        return streamCodec -> readAttachingStreamCodec(keyCodec, attachmentsGetter, streamCodec, keyGetter);
+    }
+
+    /**
+     * Creates a {@link StreamCodec.CodecOperation} that decodes one value then attaches it to the context when
+     * decoding the result value.
      *
      * @param attachmentCodec  the codec for decoding the attachment.
      * @param attachmentGetter a function for getting the attachment when given the result type.
@@ -447,6 +524,26 @@ public class AttachmentKey<A> {
     public <B extends FriendlyByteBuf, V> StreamCodec.CodecOperation<B, V, V> readAttachingStreamOp(
         StreamCodec<? super B, A> attachmentCodec, Function<? super V, ? extends A> attachmentGetter) {
         return streamCodec -> readAttachingStreamCodec(attachmentCodec, streamCodec, attachmentGetter);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that decodes one value and uses it to create the attachments to attach to the context
+     * when decoding the other value, but that also allows the mutation of the attachment while encoding, making sure
+     * those changes show up in the decoded key.
+     *
+     * @param keyCodec          the codec for the key to be turned into attachments.
+     * @param attachmentsGetter the function to turn the key into attachments.
+     * @param wrappedCodec      the codec to pass the attachments to.
+     * @param keyGetter         the function to get the key back from the result type.
+     * @param <K>               the key type.
+     * @param <R>               the result type.
+     * @return the created map codec.
+     */
+    public static <K, R> MapCodec<R> mutKeyAttachingCodecResult(MapCodec<K> keyCodec,
+                                                                Function<? super K, ? extends DataResult<? extends Map<AttachmentKey<?>, ?>>> attachmentsGetter,
+                                                                MapCodec<R> wrappedCodec,
+                                                                Function<? super R, ? extends DataResult<? extends K>> keyGetter) {
+        return new MutKeyAttachingCodec<>(keyCodec, attachmentsGetter, wrappedCodec, keyGetter);
     }
 
     /**
@@ -461,7 +558,28 @@ public class AttachmentKey<A> {
      */
     public <R> MapCodec<R> mutKeyAttachingCodecResult(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
                                                       Function<? super R, ? extends DataResult<? extends A>> attachmentGetter) {
-        return new MutKeyAttachingCodec<>(this, keyCodec, wrappedCodec, attachmentGetter);
+        return MutKeyAttachingCodec.single(this, keyCodec, wrappedCodec, attachmentGetter);
+    }
+
+    /**
+     * Creates a {@link MapCodec} that decodes one value and uses it to create the attachments to attach to the context
+     * when decoding the other value, but that also allows the mutation of the attachment while encoding, making sure
+     * those changes show up in the decoded key.
+     *
+     * @param keyCodec          the codec for the key to be turned into attachments.
+     * @param attachmentsGetter the function to turn the key into attachments.
+     * @param wrappedCodec      the codec to pass the attachments to.
+     * @param keyGetter         the function to get the key back from the result type.
+     * @param <K>               the key type.
+     * @param <R>               the result type.
+     * @return the created map codec.
+     */
+    public static <K, R> MapCodec<R> mutKeyAttachingCodec(MapCodec<K> keyCodec,
+                                                          Function<? super K, ? extends Map<AttachmentKey<?>, ?>> attachmentsGetter,
+                                                          MapCodec<R> wrappedCodec,
+                                                          Function<? super R, ? extends K> keyGetter) {
+        return mutKeyAttachingCodecResult(keyCodec, attachmentsGetter.andThen(DataResult::success), wrappedCodec,
+            keyGetter.andThen(DataResult::success));
     }
 
     /**
@@ -476,7 +594,33 @@ public class AttachmentKey<A> {
      */
     public <R> MapCodec<R> mutKeyAttachingCodec(MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
                                                 Function<? super R, ? extends A> attachmentGetter) {
-        return new MutKeyAttachingCodec<>(this, keyCodec, wrappedCodec, attachmentGetter.andThen(DataResult::success));
+        return mutKeyAttachingCodecResult(keyCodec, wrappedCodec, attachmentGetter.andThen(DataResult::success));
+    }
+
+    /**
+     * Create a {@link StreamCodec} that decodes one value and uses it to create attachments to attach to the context
+     * when decoding the result value, but that also allows the mutation of the attachment while encoding, making sure
+     * those changes shows up in the decoded key.
+     *
+     * @param keyCodec          the codec for the key to be turned into attachments.
+     * @param attachmentsGetter the function to turn the key into attachments.
+     * @param wrappedBufferCtor for creating the buffer used by the wrapped codec, as writing wrapped codec values to
+     *                          the main buffer must be delayed.
+     * @param wrappedCodec      the codec to pass the attachments to.
+     * @param keyGetter         the function to get the key back from the resul type. This may simply create a new key
+     *                          if the key is intended to get all its value from being mutated while encoding.
+     * @param <B1>              the buffer type of the returned stream codec.
+     * @param <B2>              the buffer type of the wrapped stream codec.
+     * @param <K>               the key type.
+     * @param <V>               the result type.
+     * @return the created stream codec.
+     */
+    public static <B1 extends FriendlyByteBuf, B2 extends FriendlyByteBuf, K, V> StreamCodec<B1, V> mutReadAttachingStreamCodec(
+        StreamCodec<? super B1, K> keyCodec, Function<? super K, ? extends Map<AttachmentKey<?>, ?>> attachmentsGetter,
+        ChildBufferFactory<? super B1, B2> wrappedBufferCtor, StreamCodec<? super B2, V> wrappedCodec,
+        Function<? super V, ? extends K> keyGetter) {
+        return new MutReadAttachingStreamCodec<>(keyCodec, attachmentsGetter, wrappedBufferCtor, wrappedCodec,
+            keyGetter);
     }
 
     /**
@@ -501,7 +645,7 @@ public class AttachmentKey<A> {
     public <B1 extends FriendlyByteBuf, B2 extends FriendlyByteBuf, V> StreamCodec<B1, V> mutReadAttachingStreamCodec(
         StreamCodec<? super B1, A> attachmentCodec, ChildBufferFactory<? super B1, B2> wrappedBufferCtor,
         StreamCodec<? super B2, V> wrappedCodec, Function<? super V, ? extends A> attachmentGetter) {
-        return new MutReadAttachingStreamCodec<>(this, attachmentCodec, wrappedBufferCtor, wrappedCodec,
+        return MutReadAttachingStreamCodec.single(this, attachmentCodec, wrappedBufferCtor, wrappedCodec,
             attachmentGetter);
     }
 

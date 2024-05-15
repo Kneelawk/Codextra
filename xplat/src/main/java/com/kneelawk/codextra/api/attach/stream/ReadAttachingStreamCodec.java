@@ -25,6 +25,7 @@
 
 package com.kneelawk.codextra.api.attach.stream;
 
+import java.util.Map;
 import java.util.function.Function;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -33,63 +34,102 @@ import net.minecraft.network.codec.StreamCodec;
 import com.kneelawk.codextra.api.attach.AttachmentKey;
 
 /**
- * A {@link StreamCodec} that decodes one value and then attaches it to the context when decoding the result value.
+ * A {@link StreamCodec} that decodes one value and uses it to create attachments to attach to the context when
+ * decoding the result value.
  *
- * @param <A> the attachment type.
  * @param <B> the buffer type.
+ * @param <K> the key type.
  * @param <V> the result type.
  */
-public class ReadAttachingStreamCodec<A, B extends FriendlyByteBuf, V> implements StreamCodec<B, V> {
-    private final AttachmentKey<A> key;
-    private final StreamCodec<? super B, A> keyCodec;
+public class ReadAttachingStreamCodec<B extends FriendlyByteBuf, K, V> implements StreamCodec<B, V> {
+    private final StreamCodec<? super B, K> keyCodec;
+    private final Function<? super K, ? extends Map<AttachmentKey<?>, ?>> attachmentsGetter;
     private final StreamCodec<? super B, V> wrappedCodec;
-    private final Function<? super V, ? extends A> attachmentGetter;
+    private final Function<? super V, ? extends K> keyGetter;
+
+    /**
+     * Creates a new {@link ReadAttachingStreamCodec} that uses its key as its single attachment.
+     *
+     * @param key          the attachment key.
+     * @param keyCodec     the codec for the attachment.
+     * @param wrappedCodec the codec to pass the attachment to.
+     * @param keyGetter    the function to get the key from the result.
+     * @param <A>          the attachment type.
+     * @param <B>          the buffer type.
+     * @param <V>          the result type.
+     * @return the new stream codec.
+     */
+    public static <A, B extends FriendlyByteBuf, V> ReadAttachingStreamCodec<B, A, V> single(AttachmentKey<A> key,
+                                                                                             StreamCodec<? super B, A> keyCodec,
+                                                                                             StreamCodec<? super B, V> wrappedCodec,
+                                                                                             Function<? super V, ? extends A> keyGetter) {
+        return new ReadAttachingStreamCodec<>(keyCodec, a -> Map.of(key, a), wrappedCodec, keyGetter);
+    }
 
     /**
      * Creates a new {@link ReadAttachingStreamCodec}.
      *
-     * @param key              the attachment key.
-     * @param keyCodec         the codec for decoding the attachment.
-     * @param wrappedCodec     the codec that is invoked with the attachment attached.
-     * @param attachmentGetter a function for getting the attachment when given the result type.
+     * @param keyCodec          the codec for the key to be turned into attachments.
+     * @param attachmentsGetter the function to turn the key into attachments.
+     * @param wrappedCodec      the codec to pass the attachments to.
+     * @param keyGetter         the function to get the key back from the result type.
      */
-    public ReadAttachingStreamCodec(AttachmentKey<A> key, StreamCodec<? super B, A> keyCodec,
+    public ReadAttachingStreamCodec(StreamCodec<? super B, K> keyCodec,
+                                    Function<? super K, ? extends Map<AttachmentKey<?>, ?>> attachmentsGetter,
                                     StreamCodec<? super B, V> wrappedCodec,
-                                    Function<? super V, ? extends A> attachmentGetter) {
-        this.key = key;
+                                    Function<? super V, ? extends K> keyGetter) {
         this.keyCodec = keyCodec;
+        this.attachmentsGetter = attachmentsGetter;
         this.wrappedCodec = wrappedCodec;
-        this.attachmentGetter = attachmentGetter;
+        this.keyGetter = keyGetter;
     }
 
     @Override
     public V decode(B object) {
-        A attachment = keyCodec.decode(object);
+        K key = keyCodec.decode(object);
 
-        key.push(object, attachment);
+        Map<AttachmentKey<?>, ?> attachmentMap = attachmentsGetter.apply(key);
+
+        push(object, attachmentMap);
         try {
             return wrappedCodec.decode(object);
         } finally {
-            key.pop(object);
+            pop(object, attachmentMap);
         }
     }
 
     @Override
     public void encode(B object, V object2) {
-        A attachment = attachmentGetter.apply(object2);
+        K key = keyGetter.apply(object2);
 
-        keyCodec.encode(object, attachment);
+        Map<AttachmentKey<?>, ?> attachmentMap = attachmentsGetter.apply(key);
 
-        key.push(object, attachment);
+        keyCodec.encode(object, key);
+
+        push(object, attachmentMap);
         try {
             wrappedCodec.encode(object, object2);
         } finally {
-            key.pop(object);
+            pop(object, attachmentMap);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void push(FriendlyByteBuf buf, Map<AttachmentKey<?>, ?> attachmentMap) {
+        for (var entry : attachmentMap.entrySet()) {
+            ((AttachmentKey<Object>) entry.getKey()).push(buf, entry.getValue());
+        }
+    }
+
+    private void pop(FriendlyByteBuf buf, Map<AttachmentKey<?>, ?> attachmentMap) {
+        for (var key : attachmentMap.keySet()) {
+            key.pop(buf);
         }
     }
 
     @Override
     public String toString() {
-        return "ReadAttachingStreamCodec[" + key + " " + keyCodec + " " + wrappedCodec + " " + attachmentGetter + "]";
+        return "ReadAttachingStreamCodec[" + keyCodec + " " + attachmentsGetter + " " + wrappedCodec + " " + keyGetter +
+            "]";
     }
 }

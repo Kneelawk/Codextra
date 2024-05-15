@@ -1,5 +1,6 @@
 package com.kneelawk.codextra.api.attach.codec;
 
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -10,36 +11,55 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 
 import com.kneelawk.codextra.api.attach.AttachmentKey;
+import com.kneelawk.codextra.api.util.FunctionUtils;
 
 /**
- * A {@link MapCodec} that decodes one value and attaches it to the context when decoding the other value, but that
- * also allows mutation of the attachment while encoding, making sure those changes show up in the decoded attachment.
+ * A {@link MapCodec} that decodes one value and uses it to create the attachments to attach to the context when
+ * decoding the other value, but that also allows mutation of the attachment while encoding, making sure those changes
+ * show up in the decoded key.
  *
- * @param <A> the attachment type.
+ * @param <K> the key type.
  * @param <R> the result type.
  */
-public class MutKeyAttachingCodec<A, R> extends MapCodec<R> {
-    private final AttachmentKey<A> key;
-    private final MapCodec<A> keyCodec;
+public class MutKeyAttachingCodec<K, R> extends MapCodec<R> {
+    private final MapCodec<K> keyCodec;
+    private final Function<? super K, ? extends DataResult<? extends Map<AttachmentKey<?>, ?>>> attachmentsGetter;
     private final MapCodec<R> wrappedCodec;
-    private final Function<? super R, ? extends DataResult<? extends A>> attachmentGetter;
+    private final Function<? super R, ? extends DataResult<? extends K>> keyGetter;
+
+    /**
+     * Creates a new {@link MutKeyAttachingCodec} that uses its key as its single attachment.
+     *
+     * @param key          the attachment key.
+     * @param keyCodec     the codec for the attachment.
+     * @param wrappedCodec the codec to pass the attachment to.
+     * @param keyGetter    the function to get the key from the result.
+     * @param <A>          the attachment type.
+     * @param <R>          the result type.
+     * @return the new codec.
+     */
+    public static <A, R> MutKeyAttachingCodec<A, R> single(AttachmentKey<A> key, MapCodec<A> keyCodec,
+                                                           MapCodec<R> wrappedCodec,
+                                                           Function<? super R, ? extends DataResult<? extends A>> keyGetter) {
+        return new MutKeyAttachingCodec<>(keyCodec, a -> DataResult.success(Map.of(key, a)), wrappedCodec, keyGetter);
+    }
 
     /**
      * Creates a new {@link MutKeyAttachingCodec}.
      *
-     * @param key              the key of the attachment to attach.
-     * @param keyCodec         the codec that decodes the attachment.
-     * @param wrappedCodec     the codec that is invoked with the attachment attached.
-     * @param attachmentGetter a function for getting the attachment when given the result type. This may simply create
-     *                         a new attachment if the attachment is intended to get all its value from being mutated
-     *                         while encoding.
+     * @param keyCodec          the codec for the key to be turned into attachments.
+     * @param attachmentsGetter the function to turn the key into attachments.
+     * @param wrappedCodec      the codec to pass the attachments to.
+     * @param keyGetter         the function to get the key back from the result type.
      */
-    public MutKeyAttachingCodec(AttachmentKey<A> key, MapCodec<A> keyCodec, MapCodec<R> wrappedCodec,
-                                Function<? super R, ? extends DataResult<? extends A>> attachmentGetter) {
-        this.key = key;
+    public MutKeyAttachingCodec(MapCodec<K> keyCodec,
+                                Function<? super K, ? extends DataResult<? extends Map<AttachmentKey<?>, ?>>> attachmentsGetter,
+                                MapCodec<R> wrappedCodec,
+                                Function<? super R, ? extends DataResult<? extends K>> keyGetter) {
         this.keyCodec = keyCodec;
+        this.attachmentsGetter = attachmentsGetter;
         this.wrappedCodec = wrappedCodec;
-        this.attachmentGetter = attachmentGetter;
+        this.keyGetter = keyGetter;
     }
 
     @Override
@@ -49,30 +69,56 @@ public class MutKeyAttachingCodec<A, R> extends MapCodec<R> {
 
     @Override
     public <T> DataResult<R> decode(DynamicOps<T> ops, MapLike<T> input) {
-        return keyCodec.decode(ops, input).flatMap(keyValue -> {
-            DynamicOps<T> attached = key.push(ops, keyValue);
-            DataResult<R> result = wrappedCodec.decode(attached, input);
-            key.pop(attached);
-            return result;
-        });
+        return keyCodec.decode(ops, input).flatMap(attachmentsGetter.andThen(FunctionUtils.dataIdentity()))
+            .flatMap(attachmentMap -> {
+                DynamicOps<T> attached = push(ops, attachmentMap);
+                DataResult<R> result = wrappedCodec.decode(attached, input);
+                pop(attached, attachmentMap);
+                return result;
+            });
     }
 
     @Override
     public <T> RecordBuilder<T> encode(R input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-        DataResult<? extends A> attachmentResult = attachmentGetter.apply(input);
-        if (attachmentResult.isError()) {
-            return prefix.withErrorsFrom(attachmentResult);
+        DataResult<? extends K> keyResult = keyGetter.apply(input);
+        if (keyResult.isError()) {
+            return prefix.withErrorsFrom(keyResult);
         }
 
-        A attachment = attachmentResult.result().get();
+        K key = keyResult.result().get();
+        DataResult<? extends Map<AttachmentKey<?>, ?>> attachmentMapResult = attachmentsGetter.apply(key);
+        if (attachmentMapResult.isError()) {
+            return prefix.withErrorsFrom(keyResult);
+        }
 
-        DynamicOps<T> attached = key.push(ops, attachment);
+        Map<AttachmentKey<?>, ?> attachmentMap = attachmentMapResult.result().get();
+        DynamicOps<T> attached = push(ops, attachmentMap);
         RecordBuilder<T> wrapped =
             wrappedCodec.encode(input, attached, OpsReplacingRecordBuilder.wrap(prefix, attached));
-        key.pop(attached);
+        pop(attached, attachmentMap);
         RecordBuilder<T> unwrapped = OpsReplacingRecordBuilder.unwrap(wrapped, prefix, ops);
 
         // we can encode the key last but read it first because this is not a stream codec
-        return keyCodec.encode(attachment, ops, unwrapped);
+        return keyCodec.encode(key, ops, unwrapped);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> DynamicOps<T> push(DynamicOps<T> ops, Map<AttachmentKey<?>, ?> attachmentMap) {
+        for (var entry : attachmentMap.entrySet()) {
+            ops = ((AttachmentKey<Object>) entry.getKey()).push(ops, entry.getValue());
+        }
+        return ops;
+    }
+
+    private <T> void pop(DynamicOps<T> ops, Map<AttachmentKey<?>, ?> attachmentMap) {
+        for (var key : attachmentMap.keySet()) {
+            key.pop(ops);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "MutKeyAttachingCodec[" + keyCodec + " " + attachmentsGetter + " " + wrappedCodec + " " + keyGetter +
+            "]";
     }
 }
