@@ -8,7 +8,7 @@ Changes:
       codec.
 * Added Ops-Attachments with codecs:
     * `attachingCodec` - Attaches an attachment.
-    * `keyAttachingCodec` - Attaches a decoded value as an attachment.
+    * `keyAttachingCodec` - Attaches a decoded value as attachment(s).
     * `mutKeyAttachingCodec` - Attaches a decoded value as an attachment, but allows that attachment to be mutated while
       encoding.
     * `retrieve` - Retrieves an attachment.
