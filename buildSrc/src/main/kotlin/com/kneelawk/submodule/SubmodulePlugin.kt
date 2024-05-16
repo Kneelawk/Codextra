@@ -64,6 +64,8 @@ class SubmodulePlugin : Plugin<Project> {
         val archivesBaseName = project.getProperty<String>("archives_base_name")
         baseEx.archivesName.set("${archivesBaseName}-${project.name}")
 
+        javaEx.docsDir.set(project.rootProject.layout.buildDirectory.dir("docs/${project.name}"))
+
         val javaVersion = if (System.getenv("JAVA_VERSION") != null) {
             System.getenv("JAVA_VERSION")
         } else {
