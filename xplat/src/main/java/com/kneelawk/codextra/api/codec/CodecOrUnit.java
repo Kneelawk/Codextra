@@ -6,11 +6,15 @@ import java.util.function.Supplier;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 
+import com.kneelawk.codextra.impl.CodecOrUnitHelper;
+
 /**
  * Type that maybe holds a codec or maybe holds a supplier.
  *
  * @param <A> the type this decodes/encodes.
+ * @deprecated Use {@link com.kneelawk.codextra.api.Codextra#unitHandlingFieldOf(String, Codec)} instead.
  */
+@Deprecated(since = "1.1.0")
 public sealed interface CodecOrUnit<A> {
     /**
      * Creates a unit.
@@ -42,6 +46,8 @@ public sealed interface CodecOrUnit<A> {
      * @return the created codec wrapper.
      */
     static <A> CodecOrUnit<A> codec(Codec<A> codec) {
+        A unitValue = CodecOrUnitHelper.getUnitValue(codec);
+        if (unitValue != null) return unit(unitValue);
         return new Wrapper<>(codec);
     }
 

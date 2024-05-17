@@ -43,6 +43,7 @@ import com.mojang.serialization.RecordBuilder;
 import com.kneelawk.codextra.api.codec.ErrorHandlingMapCodec;
 import com.kneelawk.codextra.api.codec.KeyCheckingMapCodec;
 import com.kneelawk.codextra.api.codec.MapKeyDispatchCodec;
+import com.kneelawk.codextra.api.codec.UnitHandlingMapCodec;
 
 /**
  * Codextra DFU codec utility root class.
@@ -136,6 +137,19 @@ public final class Codextra {
                                                          Function<? super K, ? extends MapCodec<? extends V>> codec) {
         return mapKeyDispatchCodecResult(keyCodec, keyGetter.andThen(DataResult::success),
             codec.andThen(DataResult::success));
+    }
+
+    /**
+     * Creates a new {@link MapCodec} that treats missing keys as units (empty maps) so that they can be decoded by
+     * {@link Codec#unit(Supplier)}.
+     *
+     * @param <A>   the result type.
+     * @param name  the field name.
+     * @param codec the codec to go into the field.
+     * @return the created map codec.
+     */
+    public static <A> MapCodec<A> unitHandlingFieldOf(String name, Codec<A> codec) {
+        return new UnitHandlingMapCodec<>(name, codec);
     }
 
     /**
