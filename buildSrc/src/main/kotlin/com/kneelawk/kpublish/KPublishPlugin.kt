@@ -27,8 +27,11 @@ package com.kneelawk.kpublish
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.publish.PublishingExtension
+import org.gradle.authentication.http.BasicAuthentication
 import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.credentials
 import org.gradle.kotlin.dsl.getByType
 
 class KPublishPlugin : Plugin<Project> {
@@ -44,6 +47,17 @@ class KPublishPlugin : Plugin<Project> {
             publishingEx.repositories.maven {
                 name = "publishRepo"
                 url = project.uri(project.rootProject.file(publishRepo))
+            }
+        }
+
+        if (project.hasProperty("kneelawkUsername") && project.hasProperty("kneelawkPassword")) {
+            publishingEx.repositories.maven {
+                name = "kneelawk"
+                url = project.uri("https://maven.kneelawk.com/releases")
+                credentials(PasswordCredentials::class)
+                authentication {
+                    create<BasicAuthentication>("basic")
+                }
             }
         }
     }
