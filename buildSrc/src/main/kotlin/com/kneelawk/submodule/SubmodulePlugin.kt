@@ -96,10 +96,11 @@ class SubmodulePlugin : Plugin<Project> {
         project.dependencies.apply {
             val minecraftVersion = project.getProperty<String>("minecraft_version")
             add("minecraft", "com.mojang:minecraft:$minecraftVersion")
+            val parchmentMcVersion = project.getProperty<String>("parchment_mc_version")
             val parchmentVersion = project.getProperty<String>("parchment_version")
             add("mappings", loomEx.layered {
                 officialMojangMappings()
-                parchment("org.parchmentmc.data:parchment-$minecraftVersion:$parchmentVersion@zip")
+                parchment("org.parchmentmc.data:parchment-$parchmentMcVersion:$parchmentVersion@zip")
             })
 
             add("compileOnly", "com.google.code.findbugs:jsr305:3.0.2")

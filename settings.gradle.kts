@@ -24,4 +24,4 @@ rootProject.name = "codextra"
 
 include(":xplat")
 include(":fabric", ":fabric:remapCheck")
-include(":neoforge")
+//include(":neoforge")
