@@ -149,8 +149,8 @@ class SubmodulePlugin : Plugin<Project> {
             }
 
             named("javadoc", Javadoc::class.java).configure {
-                exclude("com/kneelawk/commonevents/impl")
-                exclude("com/kneelawk/commonevents/**/impl")
+                exclude("com/kneelawk/codextra/impl")
+                exclude("com/kneelawk/codextra/**/impl")
 
 //              val minecraft_version: String by project
 //              val quilt_mappings: String by project
