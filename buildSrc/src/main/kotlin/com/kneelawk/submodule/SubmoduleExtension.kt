@@ -27,7 +27,10 @@ package com.kneelawk.submodule
 
 import com.kneelawk.getProperty
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
+import net.fabricmc.loom.task.RemapJarTask
+import net.fabricmc.loom.task.RemapSourcesJarTask
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
@@ -35,9 +38,10 @@ import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.jvm.tasks.ProcessResources
 
-abstract class SubmoduleExtension(private val project: Project) {
+abstract class SubmoduleExtension(private val project: Project, private val javaVersion: String) {
+    var usingKotlin = false
     lateinit var xplatName: String
-    val transitiveProjectDependencies = mutableListOf<String>()
+    val transitiveProjectDependencies = mutableListOf<ProjectDep>()
 
     fun setRefmaps(basename: String) {
         val refmapName = "${basename}.refmap.json"
@@ -77,7 +81,7 @@ abstract class SubmoduleExtension(private val project: Project) {
         }
     }
 
-    fun applyXplatConnection(xplatName: String) {
+    fun applyXplatConnection(xplatName: String, platform: String) {
         this.xplatName = xplatName
 
         val xplatProject = project.evaluationDependsOn(xplatName)
@@ -97,7 +101,7 @@ abstract class SubmoduleExtension(private val project: Project) {
             }
         }
 
-        val onNeoForge = project.findProperty("loom.platform") == "neoforge"
+        val onNeoForge = platform == "neoforge"
 
         if (!onNeoForge) {
             loomEx.mixin.defaultRefmapName.set(xplatLoom.mixin.defaultRefmapName)
@@ -108,10 +112,10 @@ abstract class SubmoduleExtension(private val project: Project) {
         }
 
         for (transitiveDep in xplatSubmodule.transitiveProjectDependencies) {
-            if (onNeoForge) {
-                neoforgeProjectDependency(transitiveDep)
-            } else {
-                fabricProjectDependency(transitiveDep)
+            when (platform) {
+                "neoforge" -> neoforgeProjectDependency(transitiveDep.projectBase, transitiveDep.api)
+                "fabric" -> fabricProjectDependency(transitiveDep.projectBase, transitiveDep.api)
+                "mojmap" -> mojmapProjectDependency(transitiveDep.projectBase, transitiveDep.api)
             }
         }
 
@@ -150,14 +154,6 @@ abstract class SubmoduleExtension(private val project: Project) {
         }
     }
 
-    fun enableRemapping() {
-        project.tasks.named("jar", Jar::class).configure {
-            manifest {
-                attributes("Fabric-Loom-Remap" to true)
-            }
-        }
-    }
-
     fun generateRuns() {
         val loomEx = project.extensions.getByType(LoomGradleExtensionAPI::class);
         loomEx.runs {
@@ -168,6 +164,35 @@ abstract class SubmoduleExtension(private val project: Project) {
             named("server") {
                 ideConfigGenerated(true)
             }
+        }
+    }
+
+    fun forceRemap() {
+        project.tasks.named("jar", Jar::class).configure {
+            manifest {
+                attributes("Fabric-Loom-Remap" to true)
+            }
+        }
+    }
+
+    fun disableRemap() {
+        project.tasks.apply {
+            named("remapJar", RemapJarTask::class).configure {
+                targetNamespace.set("named")
+            }
+            named("remapSourcesJar", RemapSourcesJarTask::class).configure {
+                targetNamespace.set("named")
+            }
+        }
+    }
+
+    fun setupJavadoc() {
+        val javaEx = project.extensions.getByType(JavaPluginExtension::class)
+
+        javaEx.withJavadocJar()
+
+        project.tasks.named("javadoc", Javadoc::class).configure {
+            options.optionFiles(project.rootProject.file("javadoc-options.txt"))
         }
     }
 
@@ -196,36 +221,57 @@ abstract class SubmoduleExtension(private val project: Project) {
         project.tasks.named("assemble").configure { dependsOn(jarExt) }
     }
 
-    fun xplatProjectDependency(projectBase: String, transitive: Boolean = true) {
-        project.dependencies.apply {
-            add("compileOnly", project("${projectBase}-xplat", configuration = "namedElements"))
-            add("testCompileOnly", project("${projectBase}-xplat", configuration = "namedElements"))
+    fun xplatProjectDependency(projectBase: String, transitive: Boolean = true, api: Boolean = true) {
+        val config = if (api) "api" else "compileOnly"
+        val xplatName = if (projectBase == ":") ":xplat" else "${projectBase}-xplat"
+
+        project.dependencies {
+            add(config, project(xplatName, configuration = "namedElements"))
+            add("testCompileOnly", project(xplatName, configuration = "namedElements"))
         }
 
         if (transitive) {
-            transitiveProjectDependencies.add(projectBase)
+            transitiveProjectDependencies.add(ProjectDep(projectBase, api))
         }
     }
 
-    fun fabricProjectDependency(projectBase: String) {
-        project.dependencies.apply {
-            add("compileOnly", project("${projectBase}-xplat", configuration = "namedElements"))
-            add("implementation", project("${projectBase}-fabric", configuration = "namedElements"))
-            add("include", project("${projectBase}-fabric"))
-            add("testCompileOnly", project("${projectBase}-xplat", configuration = "namedElements"))
-            add("testImplementation", project("${projectBase}-fabric", configuration = "namedElements"))
+    fun fabricProjectDependency(projectBase: String, api: Boolean = true) {
+        val config = if (api) "api" else "implementation"
+        val xplatName = if (projectBase == ":") ":xplat" else "${projectBase}-xplat"
+        val fabricName = if (projectBase == ":") ":fabric" else "${projectBase}-fabric"
+
+        project.dependencies {
+            add("compileOnly", project(xplatName, configuration = "namedElements"))
+            add(config, project(fabricName, configuration = "namedElements"))
+            add("include", project(fabricName))
+            add("testCompileOnly", project(xplatName, configuration = "namedElements"))
+            add("testImplementation", project(fabricName, configuration = "namedElements"))
         }
     }
 
-    fun neoforgeProjectDependency(projectBase: String) {
-        project.dependencies.apply {
-            add("compileOnly", project("${projectBase}-xplat", configuration = "namedElements"))
-            add("compileOnly", project("${projectBase}-neoforge", configuration = "namedElements"))
-            add("runtimeOnly", project("${projectBase}-neoforge", configuration = "dev"))
-            add("include", project("${projectBase}-neoforge"))
-            add("testCompileOnly", project("${projectBase}-xplat", configuration = "namedElements"))
-            add("testCompileOnly", project("${projectBase}-neoforge", configuration = "namedElements"))
-            add("testRuntimeOnly", project("${projectBase}-neoforge", configuration = "dev"))
+    fun neoforgeProjectDependency(projectBase: String, api: Boolean = true) {
+        val config = if (api) "api" else "implementation"
+        val xplatName = if (projectBase == ":") ":xplat" else "${projectBase}-xplat"
+        val neoforgeName = if (projectBase == ":") ":neoforge" else "${projectBase}-neoforge"
+
+        project.dependencies {
+            add("compileOnly", project(xplatName, configuration = "namedElements"))
+            add(config, project(neoforgeName, configuration = "namedElements"))
+//            add("runtimeOnly", project("${projectBase}-neoforge", configuration = "dev"))
+            add("include", project(neoforgeName))
+            add("testCompileOnly", project(xplatName, configuration = "namedElements"))
+            add("testCompileOnly", project(neoforgeName, configuration = "namedElements"))
+            add("testRuntimeOnly", project(neoforgeName, configuration = "dev"))
+        }
+    }
+
+    fun mojmapProjectDependency(projectBase: String, api: Boolean = true) {
+        val config = if (api) "api" else "compileOnly"
+        val mojmapName = if (projectBase == ":") ":xplat-mojmap" else "${projectBase}-xplat-mojmap"
+
+        project.dependencies {
+            add(config, project(mojmapName, configuration = "namedElements"))
+            add("testCompileOnly", project(mojmapName, configuration = "namedElements"))
         }
     }
 }

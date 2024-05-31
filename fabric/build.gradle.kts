@@ -32,11 +32,8 @@ plugins {
 submodule {
     applyFabricLoaderDependency()
     applyFabricApiDependency()
-    applyXplatConnection(":xplat")
-}
-
-java {
-    withJavadocJar()
+    applyXplatConnection(":xplat", "fabric")
+    setupJavadoc()
 }
 
 kpublish {

@@ -38,7 +38,10 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.jvm.tasks.Jar
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.maven
+import org.gradle.kotlin.dsl.withType
 import org.gradle.language.jvm.tasks.ProcessResources
 
 class SubmodulePlugin : Plugin<Project> {
@@ -57,22 +60,22 @@ class SubmodulePlugin : Plugin<Project> {
         val javaEx = project.extensions.getByType(JavaPluginExtension::class)
         val loomEx = project.extensions.getByType(LoomGradleExtensionAPI::class)
 
-        project.extensions.create("submodule", SubmoduleExtension::class, project)
-
-        val mavenGroup = project.getProperty<String>("maven_group")
-        project.group = mavenGroup
-        val archivesBaseName = project.getProperty<String>("archives_base_name")
-        baseEx.archivesName.set("${archivesBaseName}-${project.name}")
-
-        javaEx.docsDir.set(project.rootProject.layout.buildDirectory.dir("docs/${project.name}"))
-
         val javaVersion = if (System.getenv("JAVA_VERSION") != null) {
             System.getenv("JAVA_VERSION")
         } else {
             project.getProperty<String>("java_version")
         }
 
+        project.extensions.create("submodule", SubmoduleExtension::class, project, javaVersion)
+
+        val mavenGroup = project.getProperty<String>("maven_group")
+        project.group = mavenGroup
+        val archivesBaseName = project.getProperty<String>("archives_base_name")
+        baseEx.archivesName.set("${archivesBaseName}-${project.name}")
+
         javaEx.apply {
+            docsDir.set(project.rootProject.layout.buildDirectory.dir("docs/${project.name}"))
+
             sourceCompatibility = JavaVersion.toVersion(javaVersion)
             targetCompatibility = JavaVersion.toVersion(javaVersion)
 
@@ -86,9 +89,11 @@ class SubmodulePlugin : Plugin<Project> {
             maven("https://maven.quiltmc.org/repository/release") { name = "Quilt" }
             maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
             maven("https://maven.firstdark.dev/snapshots") { name = "FirstDark" }
-            maven("https://kneelawk.com/maven") { name = "Kneelawk" }
+            maven("https://maven.kneelawk.com/releases/") { name = "Kneelawk" }
             maven("https://maven.alexiil.uk/") { name = "AlexIIL" }
             maven("https://maven.parchmentmc.org") { name = "ParchmentMC" }
+            maven("https://maven.terraformersmc.com/releases/") { name = "TerraformersMC" }
+            maven("https://thedarkcolour.github.io/KotlinForForge/") { name = "Kotlin" }
 
             mavenLocal()
         }
@@ -106,9 +111,7 @@ class SubmodulePlugin : Plugin<Project> {
             add("compileOnly", "com.google.code.findbugs:jsr305:3.0.2")
             add("testCompileOnly", "com.google.code.findbugs:jsr305:3.0.2")
 
-            add("testImplementation", platform("org.junit:junit-bom:5.10.2"))
-            add("testImplementation", "org.junit.jupiter:junit-jupiter")
-            add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
+            add("testImplementation", "junit:junit:4.13.2")
         }
 
         project.tasks.apply {
@@ -122,6 +125,9 @@ class SubmodulePlugin : Plugin<Project> {
                 filesMatching(metadataFiles) {
                     expand(properties)
                 }
+
+                exclude("**/*.xcf")
+                exclude("**/*.bbmodel")
             }
 
             withType<JavaCompile>().configureEach {
@@ -129,33 +135,36 @@ class SubmodulePlugin : Plugin<Project> {
                 options.release.set(javaVersion.toInt())
             }
 
-            named("jar", Jar::class).configure {
+            named("jar", Jar::class.java).configure {
                 from(project.rootProject.file("LICENSE")) {
                     rename { "${it}_${project.rootProject.name}" }
                 }
                 archiveClassifier.set("")
             }
 
-            named("sourcesJar", Jar::class).configure {
+            named("sourcesJar", Jar::class.java).configure {
                 from(project.rootProject.file("LICENSE")) {
                     rename { "${it}_${project.rootProject.name}" }
                 }
             }
 
-            named("javadoc", Javadoc::class).configure {
-                exclude("com/kneelawk/codextra/impl")
-                exclude("com/kneelawk/codextra/**/impl")
+            named("javadoc", Javadoc::class.java).configure {
+                exclude("com/kneelawk/commonevents/impl")
+                exclude("com/kneelawk/commonevents/**/impl")
 
+//              val minecraft_version: String by project
+//              val quilt_mappings: String by project
 //                val jetbrainsAnnotationsVersion = project.getProperty<String>("jetbrains_annotations_version")
+//              val lns_version: String by project
                 (options as? StandardJavadocDocletOptions)?.links = listOf(
-//                    "https://javadoc.io/doc/org.jetbrains/annotations/${jetbrainsAnnotationsVersion}/"
+//                  "https://maven.quiltmc.org/repository/release/org/quiltmc/quilt-mappings/$minecraft_version+build.$quilt_mappings/quilt-mappings-$minecraft_version+build.$quilt_mappings-javadoc.jar/",
+//                    "https://javadoc.io/doc/org.jetbrains/annotations/${jetbrainsAnnotationsVersion}/",
+//                  "https://alexiil.uk/javadoc/libnetworkstack/${lns_version}/"
                 )
-
-                options.optionFiles(project.rootProject.file("javadoc-options.txt"))
             }
 
             named("test", Test::class.java).configure {
-                useJUnitPlatform()
+                useJUnit()
             }
         }
 

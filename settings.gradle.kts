@@ -23,5 +23,6 @@ plugins {
 rootProject.name = "codextra"
 
 include(":xplat")
+include(":xplat-mojmap")
 include(":fabric", ":fabric:remapCheck")
 //include(":neoforge")

@@ -32,18 +32,10 @@ plugins {
 submodule {
     setRefmaps("codextra")
     applyFabricLoaderDependency()
-    enableRemapping()
-}
-
-java {
-    withJavadocJar()
+    forceRemap()
+    setupJavadoc()
 }
 
 kpublish {
-    createPublication("intermediary", publicationName = "mavenIntermediary")
-    createPublication(
-        "mojmap",
-        publicationName = "mavenMojmap",
-        tasks = arrayOf(tasks.named("jar"), tasks.named("sourcesJar"), tasks.named("javadocJar"))
-    )
+    createPublication("intermediary")
 }
