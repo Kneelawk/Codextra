@@ -111,7 +111,9 @@ class SubmodulePlugin : Plugin<Project> {
             add("compileOnly", "com.google.code.findbugs:jsr305:3.0.2")
             add("testCompileOnly", "com.google.code.findbugs:jsr305:3.0.2")
 
-            add("testImplementation", "junit:junit:4.13.2")
+            add("testImplementation", platform("org.junit:junit-bom:5.10.2"))
+            add("testImplementation", "org.junit.jupiter:junit-jupiter")
+            add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
         }
 
         project.tasks.apply {
