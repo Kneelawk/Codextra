@@ -1,3 +1,5 @@
+<img style="float: right" src="https://raw.githubusercontent.com/Kneelawk/Codextra/2.x-1.21/xplat/src/main/resources/assets/codextra/icon-128.png" alt="Codextra Icon">
+
 # Codextra
 
 [![Github Release Status]][Github Release] [![Maven Status]][Maven] [![Javadoc Badge]][Javadoc] [![Discord Badge]][Discord] [![Ko-fi Badge]][Ko-fi]
