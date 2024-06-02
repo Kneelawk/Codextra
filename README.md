@@ -1,4 +1,4 @@
-<img style="float: right" src="https://raw.githubusercontent.com/Kneelawk/Codextra/2.x-1.21/xplat/src/main/resources/assets/codextra/icon-128.png" alt="Codextra Icon">
+<img style="float: right" align="right" src="https://raw.githubusercontent.com/Kneelawk/Codextra/2.x-1.21/xplat/src/main/resources/assets/codextra/icon-128.png" alt="Codextra Icon">
 
 # Codextra
 
