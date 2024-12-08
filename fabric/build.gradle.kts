@@ -30,9 +30,7 @@ plugins {
 }
 
 submodule {
-    applyFabricLoaderDependency()
-    applyFabricApiDependency()
-    applyXplatConnection(":xplat", "fabric")
+    applyXplatConnection(":xplat")
     setupJavadoc()
 }
 

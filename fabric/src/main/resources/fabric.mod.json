@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "codextra",
+  "id": "${mod_id}",
   "version": "${version}",
   "name": "Codextra",
   "description": "Minecraft Codec extras and utilities, including Ops-Attachments.",
@@ -13,11 +13,11 @@
     "sources": "https://github.com/Kneelawk/Codextra"
   },
   "license": "MIT",
-  "icon": "assets/codextra/icon-128.png",
+  "icon": "assets/${mod_id}/icon-128.png",
   "environment": "*",
   "entrypoints": { },
   "mixins": [
-    "codextra.mixins.json"
+    "${mod_id}.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.15.10",

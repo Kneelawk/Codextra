@@ -1,16 +1,28 @@
 pluginManagement {
     repositories {
+        maven("https://maven.quiltmc.org/repository/release") {
+            name = "Quilt"
+        }
+        maven("https://maven.fabricmc.net/") {
+            name = "Fabric"
+        }
+        maven("https://maven.architectury.dev/") {
+            name = "Architectury"
+        }
+        maven("https://maven.neoforged.net/releases/") {
+            name = "NeoForged"
+        }
+        maven("https://maven.kneelawk.com/releases/") {
+            name = "Kneelawk"
+        }
         mavenCentral()
         gradlePluginPortal()
-        maven("https://maven.fabricmc.net/") { name = "Fabric" }
-        maven("https://maven.architectury.dev/") { name = "Architectury" }
-        maven("https://maven.quiltmc.org/repository/release") { name = "Quilt" }
-        maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
-        maven("https://maven.kneelawk.com/releases/") { name = "Kneelawk" }
     }
     plugins {
-        val architectury_loom_version: String by settings
-        id("dev.architectury.loom") version architectury_loom_version
+        val loom_version: String by settings
+        id("fabric-loom") version loom_version
+        val moddev_version: String by settings
+        id("net.neoforged.moddev") version moddev_version
         val remapcheck_version: String by settings
         id("com.kneelawk.remapcheck") version remapcheck_version
         val versioning_version: String by settings

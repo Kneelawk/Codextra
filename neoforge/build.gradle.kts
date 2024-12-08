@@ -30,10 +30,8 @@ plugins {
 }
 
 submodule {
-    applyNeoforgeDependency()
-    applyXplatConnection(":xplat", "neoforge")
+    applyXplatConnection(":xplat")
     setupJavadoc()
-    createDevExport()
 }
 
 kpublish {

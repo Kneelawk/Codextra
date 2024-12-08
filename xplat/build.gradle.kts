@@ -31,8 +31,6 @@ plugins {
 
 submodule {
     setRefmaps("codextra")
-    applyFabricLoaderDependency()
-    forceRemap()
     setupJavadoc()
 }
 
